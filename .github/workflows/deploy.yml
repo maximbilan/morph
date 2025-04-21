@@ -8,6 +8,7 @@ jobs:
   deploy:
     name: Deploy Google Cloud Functions
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -25,13 +26,13 @@ jobs:
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v2'
       with:
-        version: '>= 506.0.0'
+        version: '>= 518.0.0'
 
     - name: Run script file
       run: |
          chmod +x ./scripts/deploy_functions.sh
          ./scripts/deploy_functions.sh
       env:
-        CAPY_PROJECT_ID: ${{ secrets.MORPH_PROJECT_ID }}
-        CAPY_SERVER_REGION: ${{ secrets.MORPH_SERVER_REGION }}
+        MORPH_PROJECT_ID: ${{ secrets.MORPH_PROJECT_ID }}
+        MORPH_SERVER_REGION: ${{ secrets.MORPH_SERVER_REGION }}
       shell: bash
