@@ -8,7 +8,6 @@ jobs:
   setup-telegram-bot:
     name: Setup Telegram Bot
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
     - name: Checkout repository
