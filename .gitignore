@@ -23,3 +23,11 @@ go.work.sum
 
 # env file
 .env
+
+# executable
+morph
+__debug_*
+
+# credentials
+credentials.json
+gha-creds-*.json
