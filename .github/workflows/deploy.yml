@@ -8,7 +8,6 @@ jobs:
   deploy:
     name: Deploy Google Cloud Functions
     runs-on: ubuntu-latest
-    environment: production
     permissions:
       contents: 'read'
       id-token: 'write'
