@@ -1,0 +1,38 @@
+name: Deploy Functions
+description: This workflow deploys the Google Cloud Functions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Google Cloud Functions
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - uses: 'google-github-actions/auth@v2.1.7'
+      with:
+        project_id: ${{ secrets.MORPH_PROJECT_ID }}
+        workload_identity_provider: ${{ secrets.MORPH_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.MORPH_SERVICE_ACCOUNT }}
+
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+      with:
+        version: '>= 506.0.0'
+
+    - name: Run script file
+      run: |
+         chmod +x ./scripts/deploy_functions.sh
+         ./scripts/deploy_functions.sh
+      env:
+        CAPY_PROJECT_ID: ${{ secrets.MORPH_PROJECT_ID }}
+        CAPY_SERVER_REGION: ${{ secrets.MORPH_SERVER_REGION }}
+      shell: bash

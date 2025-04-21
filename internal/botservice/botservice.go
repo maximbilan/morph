@@ -1,0 +1,14 @@
+package botservice
+
+import "net/http"
+
+type BotMessage struct {
+	UserID string
+	ChatID int64
+	Text   string
+}
+
+type BotService interface {
+	Parse(r *http.Request) *BotMessage
+	SendMessage(chatID int64, text string)
+}
