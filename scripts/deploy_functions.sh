@@ -37,7 +37,7 @@ gcloud functions deploy $HANDLER_FUNC_NAME \
     --entry-point $HANDLER_FUNC_NAME \
     --project $PROJECT_ID \
     --gen2 \
-    --region $CAPY_SERVER_REGION \
+    --region $MORPH_SERVER_REGION \
     --set-env-vars $ENV_VARS \
     --set-secrets $SECRETS \
     --memory $MEMORY
