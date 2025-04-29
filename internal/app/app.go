@@ -39,6 +39,10 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[Bot] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
 
 		bot.SendMessage(message.ChatID, "Category: "+response.Category+" Subcategory: "+response.Subcategory+" Amount: "+fmt.Sprintf("%f", response.Amount))
+
+		deepLink := fmt.Sprintf("moneywiz://expense?amount=%.2f&account=Cash&category=%s/%s&save=true", response.Amount, response.Category, response.Subcategory)
+
+		bot.SendMessage(message.ChatID, deepLink)
 	}
 
 	w.WriteHeader(http.StatusOK)
