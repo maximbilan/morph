@@ -7,15 +7,10 @@ import (
 	"os"
 
 	"github.com/invopop/jsonschema"
+	"github.com/morph/internal/aiservice"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 )
-
-type Response struct {
-	Category    string  `json:"text"`
-	Subcategory string  `json:"subcategory"`
-	Amount      float64 `json:"amount"`
-}
 
 type OpenAI struct{}
 
@@ -36,10 +31,10 @@ func generateSchema[T any]() interface{} {
 	return schema
 }
 
-func (service OpenAI) Request(name string, description string, systemPrompt string, userPrompt string, ctx *context.Context) *Response {
+func (service OpenAI) Request(name string, description string, systemPrompt string, userPrompt string, ctx *context.Context) *aiservice.Response {
 	ai := createAI()
 
-	var responseSchema = generateSchema[Response]()
+	var responseSchema = generateSchema[aiservice.Response]()
 
 	schemaParam := openai.ResponseFormatJSONSchemaJSONSchemaParam{
 		Name:        name,
@@ -61,7 +56,7 @@ func (service OpenAI) Request(name string, description string, systemPrompt stri
 		Model: openai.ChatModelO3Mini,
 	})
 
-	response := Response{}
+	response := aiservice.Response{}
 	if err != nil {
 		log.Printf("[AI] Error parsing analysis: %s", err.Error())
 		return nil
