@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/morph/internal/category"
+	"github.com/morph/third_party/moneywiz"
 	"github.com/morph/third_party/openai"
 	"github.com/morph/third_party/shortio"
 	"github.com/morph/third_party/telegram"
@@ -15,6 +16,7 @@ import (
 var bot telegram.Telegram
 var aiService openai.OpenAI
 var shortURLService shortio.ShortIO
+var deepLinkGenerator moneywiz.DeepLinkGenerator
 
 func Handle(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling...")
@@ -42,7 +44,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 
 		bot.SendMessage(message.ChatID, "Category: "+response.Category+"\nSubcategory: "+response.Subcategory+"\nAmount: "+fmt.Sprintf("%f", response.Amount))
 
-		deepLink := fmt.Sprintf("moneywiz://expense?amount=%.2f&account=Cash&category=%s/%s&save=true", response.Amount, response.Category, response.Subcategory)
+		deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", response.Amount)
 
 		url, err := shortURLService.Shorten(deepLink)
 		if err != nil {
