@@ -16,7 +16,7 @@ done
 ENV_VARS=${ENV_VARS%,}
 
 # Set the secret environment variables
-SECRET_PARAMS=("MORPH_TELEGRAM_BOT_TOKEN=telegram_bot_token" "MORPH_AI_KEY=ai_key" "MORPH_REDIRECT_KEY=redirect_key")
+SECRET_PARAMS=("MORPH_TELEGRAM_BOT_TOKEN=telegram_bot_token" "MORPH_AI_KEY=ai_key" "MORPH_REDIRECT_KEY=redirect_key" "MORPH_TELEGRAM_CHAT_ID=telegram_chat_id")
 SECRETS=""
 for PARAM in "${SECRET_PARAMS[@]}"; do
   SECRETS+="$PARAM:latest,"
