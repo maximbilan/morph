@@ -83,6 +83,8 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 
 	msg := string(body)
 
+	log.Printf("[Mono] Received message: %s", msg)
+
 	chatIDStr := os.Getenv("MORPH_TELEGRAM_CHAT_ID")
 	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
 	if err != nil {
@@ -90,6 +92,8 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("[Mono] Sending message to chat %d", chatID)
 
 	bot.SendMessage(chatID, msg, nil)
 
