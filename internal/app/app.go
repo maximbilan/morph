@@ -7,14 +7,14 @@ import (
 	"net/http"
 
 	"github.com/morph/internal/category"
-	"github.com/morph/internal/shorturl"
 	"github.com/morph/third_party/openai"
+	"github.com/morph/third_party/shortio"
 	"github.com/morph/third_party/telegram"
 )
 
 var bot telegram.Telegram
 var aiService openai.OpenAI
-var shortURLService shorturl.ShortURL
+var shortURLService shortio.ShortIO
 
 func Handle(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling...")
