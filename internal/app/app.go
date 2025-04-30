@@ -1,22 +1,22 @@
 package app
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/morph/internal/category"
+	"github.com/morph/third_party/moneywiz"
 	"github.com/morph/third_party/openai"
+	"github.com/morph/third_party/shortio"
 	"github.com/morph/third_party/telegram"
 )
 
 var bot telegram.Telegram
 var aiService openai.OpenAI
+var shortURLService shortio.ShortIO
+var deepLinkGenerator moneywiz.DeepLinkGenerator
 
 func Handle(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling...")
@@ -44,9 +44,9 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 
 		bot.SendMessage(message.ChatID, "Category: "+response.Category+"\nSubcategory: "+response.Subcategory+"\nAmount: "+fmt.Sprintf("%f", response.Amount))
 
-		deepLink := fmt.Sprintf("moneywiz://expense?amount=%.2f&account=Cash&category=%s/%s&save=true", response.Amount, response.Category, response.Subcategory)
+		deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", response.Amount)
 
-		url, err := shortenURL(deepLink)
+		url, err := shortURLService.Shorten(deepLink)
 		if err != nil {
 			log.Printf("[Bot] Error shortening URL: %v", err)
 			return
@@ -59,52 +59,4 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 	log.Println("Handled")
-}
-
-type ShortenRequest struct {
-	Domain      string `json:"domain"`
-	OriginalURL string `json:"originalURL"`
-}
-
-type ShortenResponse struct {
-	ShortURL string `json:"shortURL"`
-}
-
-func shortenURL(originalURL string) (string, error) {
-	apiURL := "https://api.short.io/links"
-	requestBody := ShortenRequest{
-		Domain:      "morph-service.short.gy",
-		OriginalURL: originalURL,
-	}
-
-	jsonData, err := json.Marshal(requestBody)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal request body: %v", err)
-	}
-
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", fmt.Errorf("failed to create request: %v", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", os.Getenv("MORPH_REDIRECT_KEY"))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return "", fmt.Errorf("failed to shorten URL: %s", string(body))
-	}
-
-	var response ShortenResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return "", fmt.Errorf("failed to decode response: %v", err)
-	}
-
-	return response.ShortURL, nil
 }
