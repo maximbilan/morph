@@ -3,9 +3,10 @@ package botservice
 import "net/http"
 
 type BotMessage struct {
-	UserID string
-	ChatID int64
-	Text   string
+	MessageID int64
+	UserID    string
+	ChatID    int64
+	Text      string
 }
 
 type BotService interface {

@@ -49,20 +49,22 @@ func (t Telegram) Parse(body io.ReadCloser) *botservice.BotMessage {
 
 	// Create a user from the telegram user
 	message := botservice.BotMessage{
-		UserID: telegramUser.StringID(),
-		ChatID: update.Message.Chat.ID,
-		Text:   input,
+		MessageID: update.Message.ID,
+		UserID:    telegramUser.StringID(),
+		ChatID:    update.Message.Chat.ID,
+		Text:      input,
 	}
 
 	return &message
 }
 
-func (t Telegram) SendMessage(chatID int64, text string) {
+func (t Telegram) SendMessage(chatID int64, text string, replyToMessageID int64) {
 	var url string = baseURL + "/sendMessage"
 
 	message := SendMessageRequest{
-		ChatID: chatID,
-		Text:   text,
+		ChatID:           chatID,
+		Text:             text,
+		ReplyToMessageID: replyToMessageID,
 	}
 
 	jsonData, err := json.Marshal(message)
