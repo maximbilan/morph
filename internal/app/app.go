@@ -42,7 +42,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("[Bot] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
 
-		bot.SendMessage(message.ChatID, "Category: "+response.Category+"\nSubcategory: "+response.Subcategory+"\nAmount: "+fmt.Sprintf("%f", response.Amount), message.MessageID)
+		msg := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", response.Amount)
 
 		deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", response.Amount)
 
@@ -53,7 +53,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("[Bot] Shortened URL: %s", url)
 
-		bot.SendMessage(message.ChatID, url, message.MessageID)
+		bot.SendMessage(message.ChatID, msg+"\n"+url, message.MessageID)
 	}
 
 	w.WriteHeader(http.StatusOK)
