@@ -58,7 +58,7 @@ func (t Telegram) Parse(body io.ReadCloser) *botservice.BotMessage {
 	return &message
 }
 
-func (t Telegram) SendMessage(chatID int64, text string, replyToMessageID int64) {
+func (t Telegram) SendMessage(chatID int64, text string, replyToMessageID *int64) {
 	var url string = baseURL + "/sendMessage"
 
 	message := SendMessageRequest{

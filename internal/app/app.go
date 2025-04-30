@@ -3,8 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/morph/internal/category"
 	"github.com/morph/third_party/moneywiz"
@@ -52,11 +55,39 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Printf("[Bot] Shortened URL: %s", url)
+		log.Printf("[Bot] Sending message to chat %d", message.ChatID)
 
-		bot.SendMessage(message.ChatID, msg+"\n"+url, message.MessageID)
+		bot.SendMessage(message.ChatID, msg+"\n"+url, &message.MessageID)
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 	log.Println("Handled")
+}
+
+func MonoWebHook(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handling Mono WebHook...")
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("[Mono] Error reading body: %s", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	msg := string(body)
+
+	chatIDStr := os.Getenv("MORPH_TELEGRAM_CHAT_ID")
+	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
+	if err != nil {
+		log.Printf("[Mono] Error converting chatID to int64: %s", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	bot.SendMessage(chatID, msg, nil)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+	log.Println("Handled Mono WebHook")
 }
