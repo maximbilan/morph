@@ -68,11 +68,12 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling Mono WebHook...")
 
-	if r.Method != http.MethodPost {
-		log.Println("Invalid request method")
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+	log.Printf("[Mono] Received request: %s", r.URL.Path)
+	log.Printf("[Mono] Headers: %v", r.Header)
+	log.Printf("[Mono] Method: %s", r.Method)
+	log.Printf("[Mono] RemoteAddr: %s", r.RemoteAddr)
+	log.Printf("[Mono] Content-Type: %s", r.Header.Get("Content-Type"))
+	log.Printf("[Mono] User-Agent: %s", r.Header.Get("User-Agent"))
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
