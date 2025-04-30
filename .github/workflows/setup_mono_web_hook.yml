@@ -1,0 +1,24 @@
+name: Setup Mono Web Hook
+description: This workflow sets up the Mono Web Hook
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-telegram-bot:
+    name: Setup Mono Web Hook
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run script file
+      run: |
+         chmod +x ./scripts/setup_mono_web_hook.sh
+         ./scripts/setup_mono_web_hook.sh
+      env:
+        MORPH_MONO_API_KEY: ${{ secrets.MORPH_MONO_API_KEY }}
+        MORPH_MONO_WEBHOOK_URL: ${{ secrets.MORPH_MONO_WEBHOOK_URL }}
+      shell: bash
