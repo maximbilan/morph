@@ -68,6 +68,12 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling Mono WebHook...")
 
+	if r.Method != http.MethodPost {
+		log.Println("Invalid request method")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("[Mono] Error reading body: %s", err.Error())
