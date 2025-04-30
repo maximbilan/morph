@@ -1,6 +1,7 @@
 #!/bin/bash
 
 HANDLER_FUNC_NAME="handler"
+MONOWEBHOOK_FUNC_NAME="monoWebHook"
 
 # Set the runtime
 RUNTIME="go122"
@@ -47,4 +48,24 @@ if [ $? -eq 0 ]; then
     echo "Function $HANDLER_FUNC_NAME deployed successfully."
 else
     echo "Failed to deploy function $HANDLER_FUNC_NAME."
+fi
+
+# Deploy Mono Web Hook function
+gcloud functions deploy $MONOWEBHOOK_FUNC_NAME \
+    --runtime $RUNTIME \
+    --trigger-http \
+    --allow-unauthenticated \
+    --entry-point $MONOWEBHOOK_FUNC_NAME \
+    --project $PROJECT_ID \
+    --gen2 \
+    --region $MORPH_SERVER_REGION \
+    --set-env-vars $ENV_VARS \
+    --set-secrets $SECRETS \
+    --memory $MEMORY
+
+# Print the deployment status
+if [ $? -eq 0 ]; then
+    echo "Function $MONOWEBHOOK_FUNC_NAME deployed successfully."
+else
+    echo "Failed to deploy function $MONOWEBHOOK_FUNC_NAME."
 fi
