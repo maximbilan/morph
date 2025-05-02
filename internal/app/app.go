@@ -80,14 +80,14 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[Mono] Error converting chatID to int64: %s", err.Error())
 	}
 
-	category, err := mcc.GetCategory(payload.Data.StatementItem.MCC)
+	category, err := mcc.GetCategory(string(payload.Data.StatementItem.MCC))
 	if err != nil {
 		log.Printf("[Mono] Error getting category: %v", err)
 	}
 
 	msg := fmt.Sprintf("Transaction Details:\n"+
 		"Description: %s\n"+
-		"MCC: %s\n"+
+		"MCC: %d\n"+
 		"Category: %s\n"+
 		"Amount: %d\n"+
 		"Balance: %d\n"+
