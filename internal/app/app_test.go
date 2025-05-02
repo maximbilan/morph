@@ -16,6 +16,7 @@ func TestMonoWebHook(t *testing.T) {
 		name           string
 		requestBody    string
 		expectedStatus int
+		expectedMsg    string
 	}{
 		{
 			name: "Valid statement item with string MCC",
@@ -41,6 +42,13 @@ func TestMonoWebHook(t *testing.T) {
 				}
 			}`,
 			expectedStatus: http.StatusOK,
+			expectedMsg: "Transaction Details:\n" +
+				"Description: Bolt\n" +
+				"MCC: 4121\n" +
+				"Category: \n" +
+				"Amount: -8400\n" +
+				"Balance: 2956404\n" +
+				"Receipt: TP4C-5M8K-2PT4-61H0",
 		},
 		{
 			name: "Valid statement item with numeric MCC",
@@ -75,7 +83,7 @@ func TestMonoWebHook(t *testing.T) {
 					"account": "a-dnHAO9ExLnboGJP_pdwA"
 				}
 			}`,
-			expectedStatus: http.StatusOK, // We don't return error status, just log
+			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name:           "Invalid JSON",

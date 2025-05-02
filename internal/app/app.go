@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -13,6 +12,7 @@ import (
 	"github.com/maximbilan/mcc"
 	"github.com/morph/internal/category"
 	"github.com/morph/third_party/moneywiz"
+	"github.com/morph/third_party/mono"
 	"github.com/morph/third_party/openai"
 	"github.com/morph/third_party/shortio"
 	"github.com/morph/third_party/telegram"
@@ -84,9 +84,9 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonData := make(map[string]interface{})
-	if err := json.Unmarshal(body, &jsonData); err != nil {
-		log.Printf("[Mono] Error unmarshalling JSON: %s", err.Error())
+	payload, err := mono.ParseWebhook(body)
+	if err != nil {
+		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -103,28 +103,24 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[Mono] Sending message to chat %d", chatID)
 
-	// Extract statementItem from the nested structure
-	statementItem, ok := jsonData["data"].(map[string]interface{})["statementItem"].(map[string]interface{})
-	if !ok {
-		log.Printf("[Mono] Error: statementItem not found in the expected structure")
-	}
-
-	mccCode, ok := statementItem["mcc"].(string)
-	if !ok {
-		mccCodeInt, ok := statementItem["mcc"].(float64)
-		if !ok {
-			log.Printf("[Mono] Error converting mcc to string or number")
-		}
-		mccCode = strconv.Itoa(int(mccCodeInt))
-	}
-
-	category, err := mcc.GetCategory(mccCode)
+	category, err := mcc.GetCategory(payload.Data.StatementItem.MCC)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("[Mono] Error getting category: %v", err)
 	}
-	log.Printf("[Mono] MCC code: %s, Category: %s", mccCode, category)
 
-	msg := "JSON: " + string(body) + "\n" + "MCC code: " + mccCode + "\nCategory: " + category
+	msg := fmt.Sprintf("Transaction Details:\n"+
+		"Description: %s\n"+
+		"MCC: %s\n"+
+		"Category: %s\n"+
+		"Amount: %d\n"+
+		"Balance: %d\n"+
+		"Receipt: %s",
+		payload.Data.StatementItem.Description,
+		payload.Data.StatementItem.MCC,
+		category,
+		payload.Data.StatementItem.Amount,
+		payload.Data.StatementItem.Balance,
+		payload.Data.StatementItem.ReceiptID)
 
 	bot.SendMessage(chatID, msg, nil)
 
