@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/maximbilan/mcc"
 	"github.com/morph/internal/category"
 	"github.com/morph/third_party/moneywiz"
 	"github.com/morph/third_party/openai"
@@ -82,9 +84,14 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := string(body)
+	jsonData := make(map[string]interface{})
+	if err := json.Unmarshal(body, &jsonData); err != nil {
+		log.Printf("[Mono] Error unmarshalling JSON: %s", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	log.Printf("[Mono] Received message: %s", msg)
+	log.Printf("[Mono] Received message: %s", string(body))
 
 	chatIDStr := os.Getenv("MORPH_TELEGRAM_CHAT_ID")
 	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
@@ -95,6 +102,24 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("[Mono] Sending message to chat %d", chatID)
+
+	mccCode, ok := jsonData["mcc"].(string)
+	if !ok {
+		mccCodeInt, ok := jsonData["mcc"].(int)
+		if !ok {
+			log.Printf("[Mono] Error converting mcc to string or int")
+		} else {
+			mccCode = strconv.Itoa(mccCodeInt)
+		}
+	}
+
+	category, err := mcc.GetCategory(mccCode)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	log.Printf("[Mono] MCC code: %s, Category: %s", mccCode, category)
+
+	msg := "JSON: " + string(body) + "\n" + "MCC code: " + mccCode + "\nCategory: " + category
 
 	bot.SendMessage(chatID, msg, nil)
 
