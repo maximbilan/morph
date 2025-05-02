@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -70,28 +69,11 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling Mono WebHook...")
 
-	log.Printf("[Mono] Received request: %s", r.URL.Path)
-	log.Printf("[Mono] Headers: %v", r.Header)
-	log.Printf("[Mono] Method: %s", r.Method)
-	log.Printf("[Mono] RemoteAddr: %s", r.RemoteAddr)
-	log.Printf("[Mono] Content-Type: %s", r.Header.Get("Content-Type"))
-	log.Printf("[Mono] User-Agent: %s", r.Header.Get("User-Agent"))
-
-	body, err := io.ReadAll(r.Body)
+	payload, err := mono.ParseWebhookRequest(r)
 	if err != nil {
-		log.Printf("[Mono] Error reading body: %s", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	payload, err := mono.ParseWebhook(body)
-	if err != nil {
-		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	log.Printf("[Mono] Received message: %s", string(body))
 
 	chatIDStr := os.Getenv("MORPH_TELEGRAM_CHAT_ID")
 	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)

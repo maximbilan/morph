@@ -2,6 +2,9 @@ package mono
 
 import (
 	"encoding/json"
+	"io"
+	"log"
+	"net/http"
 )
 
 // StatementItem represents a single transaction in Mono
@@ -33,11 +36,28 @@ type WebhookPayload struct {
 	Data StatementData `json:"data"`
 }
 
-// ParseWebhook parses the webhook payload from the request body
-func ParseWebhook(body []byte) (*WebhookPayload, error) {
-	var payload WebhookPayload
-	if err := json.Unmarshal(body, &payload); err != nil {
+// ParseWebhookRequest parses the webhook request and returns the payload
+func ParseWebhookRequest(r *http.Request) (*WebhookPayload, error) {
+	log.Printf("[Mono] Received request: %s", r.URL.Path)
+	log.Printf("[Mono] Headers: %v", r.Header)
+	log.Printf("[Mono] Method: %s", r.Method)
+	log.Printf("[Mono] RemoteAddr: %s", r.RemoteAddr)
+	log.Printf("[Mono] Content-Type: %s", r.Header.Get("Content-Type"))
+	log.Printf("[Mono] User-Agent: %s", r.Header.Get("User-Agent"))
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("[Mono] Error reading body: %s", err.Error())
 		return nil, err
 	}
+
+	log.Printf("[Mono] Received message: %s", string(body))
+
+	var payload WebhookPayload
+	if err := json.Unmarshal(body, &payload); err != nil {
+		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
+		return nil, err
+	}
+
 	return &payload, nil
 }
