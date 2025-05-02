@@ -71,19 +71,14 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 
 	payload, err := mono.ParseWebhookRequest(r)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
 	}
 
 	chatIDStr := os.Getenv("MORPH_TELEGRAM_CHAT_ID")
 	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
 	if err != nil {
 		log.Printf("[Mono] Error converting chatID to int64: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
-
-	log.Printf("[Mono] Sending message to chat %d", chatID)
 
 	category, err := mcc.GetCategory(payload.Data.StatementItem.MCC)
 	if err != nil {
