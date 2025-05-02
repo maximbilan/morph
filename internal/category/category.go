@@ -3,6 +3,9 @@ package category
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+
+	"github.com/maximbilan/mcc"
 )
 
 var categories map[string][]string
@@ -38,4 +41,13 @@ func GetCategoriesInJSON() string {
 		return "{}"
 	}
 	return string(jsonData)
+}
+
+func GetCategoryFromMCC(code int32) (string, error) {
+	str := strconv.Itoa(int(code))
+	category, err := mcc.GetCategory(str)
+	if err != nil {
+		return "", err
+	}
+	return category, nil
 }

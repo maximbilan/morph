@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
-	"github.com/maximbilan/mcc"
 	"github.com/morph/internal/category"
 	"github.com/morph/third_party/moneywiz"
 	"github.com/morph/third_party/mono"
@@ -73,8 +71,7 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
 	}
 
-	mccStr := strconv.Itoa(int(payload.Data.StatementItem.MCC))
-	category, err := mcc.GetCategory(mccStr)
+	category, err := category.GetCategoryFromMCC(payload.Data.StatementItem.MCC)
 	if err != nil {
 		log.Printf("[Mono] Error getting category: %v", err)
 	}
