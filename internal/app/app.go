@@ -103,14 +103,19 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[Mono] Sending message to chat %d", chatID)
 
-	mccCode, ok := jsonData["mcc"].(string)
+	// Extract statementItem from the nested structure
+	statementItem, ok := jsonData["data"].(map[string]interface{})["statementItem"].(map[string]interface{})
 	if !ok {
-		mccCodeInt, ok := jsonData["mcc"].(int)
+		log.Printf("[Mono] Error: statementItem not found in the expected structure")
+	}
+
+	mccCode, ok := statementItem["mcc"].(string)
+	if !ok {
+		mccCodeInt, ok := statementItem["mcc"].(float64)
 		if !ok {
-			log.Printf("[Mono] Error converting mcc to string or int")
-		} else {
-			mccCode = strconv.Itoa(mccCodeInt)
+			log.Printf("[Mono] Error converting mcc to string or number")
 		}
+		mccCode = strconv.Itoa(int(mccCodeInt))
 	}
 
 	category, err := mcc.GetCategory(mccCode)
