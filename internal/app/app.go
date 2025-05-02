@@ -2,17 +2,13 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
 
-	"github.com/maximbilan/mcc"
 	"github.com/morph/internal/category"
 	"github.com/morph/third_party/moneywiz"
+	"github.com/morph/third_party/mono"
 	"github.com/morph/third_party/openai"
 	"github.com/morph/third_party/shortio"
 	"github.com/morph/third_party/telegram"
@@ -70,61 +66,34 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling Mono WebHook...")
 
-	log.Printf("[Mono] Received request: %s", r.URL.Path)
-	log.Printf("[Mono] Headers: %v", r.Header)
-	log.Printf("[Mono] Method: %s", r.Method)
-	log.Printf("[Mono] RemoteAddr: %s", r.RemoteAddr)
-	log.Printf("[Mono] Content-Type: %s", r.Header.Get("Content-Type"))
-	log.Printf("[Mono] User-Agent: %s", r.Header.Get("User-Agent"))
-
-	body, err := io.ReadAll(r.Body)
+	payload, err := mono.ParseWebhookRequest(r)
 	if err != nil {
-		log.Printf("[Mono] Error reading body: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
 	}
 
-	jsonData := make(map[string]interface{})
-	if err := json.Unmarshal(body, &jsonData); err != nil {
-		log.Printf("[Mono] Error unmarshalling JSON: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	log.Printf("[Mono] Received message: %s", string(body))
-
-	chatIDStr := os.Getenv("MORPH_TELEGRAM_CHAT_ID")
-	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
+	category, err := category.GetCategoryFromMCC(payload.Data.StatementItem.MCC)
 	if err != nil {
-		log.Printf("[Mono] Error converting chatID to int64: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Printf("[Mono] Error getting category: %v", err)
 	}
 
-	log.Printf("[Mono] Sending message to chat %d", chatID)
+	msg := fmt.Sprintf("Transaction Details:\n"+
+		"Description: %s\n"+
+		"MCC: %d\n"+
+		"Category: %s\n"+
+		"Amount: %d\n"+
+		"Balance: %d\n"+
+		"Receipt: %s",
+		payload.Data.StatementItem.Description,
+		payload.Data.StatementItem.MCC,
+		category,
+		payload.Data.StatementItem.Amount,
+		payload.Data.StatementItem.Balance,
+		payload.Data.StatementItem.ReceiptID)
 
-	// Extract statementItem from the nested structure
-	statementItem, ok := jsonData["data"].(map[string]interface{})["statementItem"].(map[string]interface{})
-	if !ok {
-		log.Printf("[Mono] Error: statementItem not found in the expected structure")
-	}
-
-	mccCode, ok := statementItem["mcc"].(string)
-	if !ok {
-		mccCodeInt, ok := statementItem["mcc"].(float64)
-		if !ok {
-			log.Printf("[Mono] Error converting mcc to string or number")
-		}
-		mccCode = strconv.Itoa(int(mccCodeInt))
-	}
-
-	category, err := mcc.GetCategory(mccCode)
+	chatID, err := bot.GetChatID()
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("[Mono] Error getting chat ID: %v", err)
 	}
-	log.Printf("[Mono] MCC code: %s, Category: %s", mccCode, category)
-
-	msg := "JSON: " + string(body) + "\n" + "MCC code: " + mccCode + "\nCategory: " + category
 
 	bot.SendMessage(chatID, msg, nil)
 

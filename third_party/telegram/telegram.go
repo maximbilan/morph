@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/morph/internal/botservice"
 )
@@ -17,6 +18,15 @@ var baseURL string
 
 func init() {
 	baseURL = "https://api.telegram.org/bot" + os.Getenv("MORPH_TELEGRAM_BOT_TOKEN")
+}
+
+func (t Telegram) GetChatID() (int64, error) {
+	chatIDStr := os.Getenv("MORPH_TELEGRAM_CHAT_ID")
+	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return chatID, nil
 }
 
 // Parse an incoming update
