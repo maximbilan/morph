@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/maximbilan/mcc"
@@ -74,13 +73,8 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
 	}
 
-	chatIDStr := os.Getenv("MORPH_TELEGRAM_CHAT_ID")
-	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
-	if err != nil {
-		log.Printf("[Mono] Error converting chatID to int64: %s", err.Error())
-	}
-
-	category, err := mcc.GetCategory(string(payload.Data.StatementItem.MCC))
+	mccStr := strconv.Itoa(int(payload.Data.StatementItem.MCC))
+	category, err := mcc.GetCategory(mccStr)
 	if err != nil {
 		log.Printf("[Mono] Error getting category: %v", err)
 	}
@@ -98,6 +92,11 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		payload.Data.StatementItem.Amount,
 		payload.Data.StatementItem.Balance,
 		payload.Data.StatementItem.ReceiptID)
+
+	chatID, err := bot.GetChatID()
+	if err != nil {
+		log.Printf("[Mono] Error getting chat ID: %v", err)
+	}
 
 	bot.SendMessage(chatID, msg, nil)
 

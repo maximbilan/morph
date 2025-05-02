@@ -10,6 +10,7 @@ type BotMessage struct {
 }
 
 type BotService interface {
+	GetChatID() (int64, error)
 	Parse(r *http.Request) *BotMessage
-	SendMessage(chatID int64, text string)
+	SendMessage(chatID int64, text string, replyToMessageID *int64)
 }

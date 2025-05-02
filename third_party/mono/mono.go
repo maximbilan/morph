@@ -44,16 +44,14 @@ type WebhookPayload struct {
 // ParseWebhookRequest parses the webhook request and returns the payload
 func ParseWebhookRequest(r *http.Request) (*WebhookPayload, error) {
 	body, err := io.ReadAll(r.Body)
+	log.Printf("[Mono] Received message: %s", string(body))
+
 	if err != nil {
-		log.Printf("[Mono] Error reading body: %s", err.Error())
 		return nil, err
 	}
 
-	log.Printf("[Mono] Received message: %s", string(body))
-
 	var payload WebhookPayload
 	if err := json.Unmarshal(body, &payload); err != nil {
-		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
 		return nil, err
 	}
 
