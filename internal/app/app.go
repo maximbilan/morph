@@ -72,24 +72,48 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
 	}
 
-	category, err := category.GetCategoryFromMCC(payload.Data.StatementItem.MCC)
+	mmcCategory, err := category.GetCategoryFromMCC(payload.Data.StatementItem.MCC)
 	if err != nil {
 		log.Printf("[Mono] Error getting category: %v", err)
 	}
 
-	msg := fmt.Sprintf("Transaction Details:\n"+
+	transaction := fmt.Sprintf("Transaction Details:\n"+
 		"Description: %s\n"+
 		"MCC: %d\n"+
 		"Category: %s\n"+
-		"Amount: %d\n"+
-		"Balance: %d\n"+
-		"Receipt: %s",
+		"Amount: %.2f\n",
 		payload.Data.StatementItem.Description,
 		payload.Data.StatementItem.MCC,
-		category,
-		payload.Data.StatementItem.Amount,
-		payload.Data.StatementItem.Balance,
-		payload.Data.StatementItem.ReceiptID)
+		mmcCategory,
+		payload.Data.StatementItem.AmountFloat())
+
+	msg := transaction + "\n\n"
+
+	categories := category.GetCategoriesInJSON()
+	hints := category.GetHintsInJSON()
+
+	ctx := context.Background()
+	systemPrompt := "You're a data analyst. You have to classify the input into categories and subcategories. The input is a transaction from Bank. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. If you can't find any proper categories, it should go to the Other category with no subcategory. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
+	userPrompt := "The transaction from Bank is: " + transaction
+
+	response := aiService.Request("Morph", "Translares Monobank transaction into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
+	if response == nil {
+		log.Printf("[Bot] No response from AI")
+	} else {
+		log.Printf("[Bot] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
+		deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", response.Amount)
+
+		url, err := shortURLService.Shorten(deepLink)
+		if err != nil {
+			log.Printf("[Bot] Error shortening URL: %v", err)
+		} else {
+			log.Printf("[Bot] Shortened URL: %s", url)
+		}
+
+		if deepLink != "" {
+			msg += deepLink
+		}
+	}
 
 	chatID, err := bot.GetChatID()
 	if err != nil {
