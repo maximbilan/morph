@@ -19,7 +19,7 @@ var aiService openai.OpenAI
 var shortURLService shortio.ShortIO
 var deepLinkGenerator moneywiz.DeepLinkGenerator
 
-func Handle(w http.ResponseWriter, r *http.Request) {
+func CashHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling...")
 
 	message := bot.Parse(r.Body)

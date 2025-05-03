@@ -13,7 +13,8 @@ const port = 8080
 func main() {
 	log.Println("Starting morph on port", port)
 
-	http.HandleFunc("/handler", app.Handle)
+	http.HandleFunc("/cashHandler", app.CashHandler)
+	http.HandleFunc("/monoWebHook", app.MonoWebHook)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
 		log.Fatalf("Error starting server: %s", err)
 	}
