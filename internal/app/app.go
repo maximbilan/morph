@@ -107,10 +107,7 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[Bot] Error shortening URL: %v", err)
 		} else {
 			log.Printf("[Bot] Shortened URL: %s", url)
-		}
-
-		if deepLink != "" {
-			msg += deepLink
+			msg += url
 		}
 	}
 
