@@ -41,8 +41,11 @@ type WebhookPayload struct {
 	Data StatementData `json:"data"`
 }
 
-// Amount float64 returns the amount in float64 format
+// Amount float64 returns the absolute amount in float64 format
 func (s *StatementItem) AmountFloat() float64 {
+	if s.Amount < 0 {
+		return float64(-s.Amount) / 100
+	}
 	return float64(s.Amount) / 100
 }
 
