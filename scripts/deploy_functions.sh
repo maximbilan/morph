@@ -28,7 +28,7 @@ SECRETS=${SECRETS%,}
 MEMORY="256MB"
 
 # Timeout
-SCHEDULER_TIMEOUT=60
+WEB_HOOK_TIMEOUT=300
 
 # Deploy the cash handler function
 gcloud functions deploy $HANDLER_FUNC_NAME \
@@ -62,6 +62,7 @@ gcloud functions deploy $MONOWEBHOOK_FUNC_NAME \
     --set-env-vars $ENV_VARS \
     --set-secrets $SECRETS \
     --memory $MEMORY
+    --timeout $WEB_HOOK_TIMEOUT
 
 # Print the deployment status
 if [ $? -eq 0 ]; then
