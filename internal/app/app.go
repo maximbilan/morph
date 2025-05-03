@@ -86,7 +86,7 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		mmcCategory,
 		payload.Data.StatementItem.AmountFloat())
 
-	msg := transaction + "\n\n"
+	msg := transaction + "\n"
 
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
