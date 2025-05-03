@@ -4,7 +4,7 @@ import "context"
 
 type Response struct {
 	Category    string  `json:"text"`
-	Subcategory string  `json:"subcategory"`
+	Subcategory string  `json:"subcategory,omitempty"`
 	Amount      float64 `json:"amount"`
 }
 
