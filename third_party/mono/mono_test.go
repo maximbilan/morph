@@ -76,3 +76,21 @@ func TestParseWebhookRequest(t *testing.T) {
 		}
 	})
 }
+
+func TestAmountFloat(t *testing.T) {
+	// Test case 1: Positive amount
+	t.Run("positive amount", func(t *testing.T) {
+		item := StatementItem{Amount: 123456}
+		if item.AmountFloat() != 1234.56 {
+			t.Errorf("Expected 1234.56, got %f", item.AmountFloat())
+		}
+	})
+
+	// Test case 2: Negative amount
+	t.Run("negative amount", func(t *testing.T) {
+		item := StatementItem{Amount: -123456}
+		if item.AmountFloat() != 1234.56 {
+			t.Errorf("Expected 1234.56, got %f", item.AmountFloat())
+		}
+	})
+}
