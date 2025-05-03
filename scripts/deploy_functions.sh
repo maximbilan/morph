@@ -61,7 +61,7 @@ gcloud functions deploy $MONOWEBHOOK_FUNC_NAME \
     --region $MORPH_SERVER_REGION \
     --set-env-vars $ENV_VARS \
     --set-secrets $SECRETS \
-    --memory $MEMORY
+    --memory $MEMORY \
     --timeout $WEB_HOOK_TIMEOUT
 
 # Print the deployment status
