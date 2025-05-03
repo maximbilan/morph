@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HANDLER_FUNC_NAME="handler"
+HANDLER_FUNC_NAME="cashHandler"
 MONOWEBHOOK_FUNC_NAME="monoWebHook"
 
 # Set the runtime
@@ -30,7 +30,7 @@ MEMORY="256MB"
 # Timeout
 SCHEDULER_TIMEOUT=60
 
-# Deploy the handler function
+# Deploy the cash handler function
 gcloud functions deploy $HANDLER_FUNC_NAME \
     --runtime $RUNTIME \
     --trigger-http \
