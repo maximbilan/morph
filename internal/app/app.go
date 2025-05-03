@@ -94,14 +94,12 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		mmcCategory,
 		payload.Data.StatementItem.AmountFloat())
 
-	msg := transaction
-
 	chatID, err := bot.GetChatID()
 	if err != nil {
 		log.Printf("[Mono] Error getting chat ID: %v", err)
 	}
 
-	bot.SendMessage(chatID, msg, nil)
+	bot.SendMessage(chatID, transaction, nil)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
