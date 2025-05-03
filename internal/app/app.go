@@ -20,7 +20,7 @@ var shortURLService shortio.ShortIO
 var deepLinkGenerator moneywiz.DeepLinkGenerator
 
 func CashHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Handling...")
+	log.Println("Started handling...")
 
 	message := bot.Parse(r.Body)
 	if message == nil {
@@ -31,9 +31,9 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 
 	if message.Text != "" {
 		ctx := context.Background()
-
 		categories := category.GetCategoriesInJSON()
 		hints := category.GetHintsInJSON()
+
 		systemPrompt := "You're a data analyst. You have to classify the input into categories and subcategories. The input is a free text. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. The input usually is in Ukrainian language. If you can't find any proper categories, it should go to the Other category with no subcategory. For example, the input is: '400 Вокал'. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
 		userPrompt := "The input is: " + message.Text
 
@@ -45,23 +45,22 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[Bot] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
 
 		msg := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", response.Amount)
-
 		deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", response.Amount)
 
 		url, err := shortURLService.Shorten(deepLink)
 		if err != nil {
 			log.Printf("[Bot] Error shortening URL: %v", err)
+			msg += "\nError shortening URL: " + err.Error()
 			return
 		}
 		log.Printf("[Bot] Shortened URL: %s", url)
 		log.Printf("[Bot] Sending message to chat %d", message.ChatID)
-
 		bot.SendMessage(message.ChatID, msg+"\n"+url, &message.MessageID)
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
-	log.Println("Handled")
+	log.Println("Cash message handled")
 }
 
 func MonoWebHook(w http.ResponseWriter, r *http.Request) {
@@ -124,5 +123,4 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
-	log.Println("Handled Mono WebHook")
 }
