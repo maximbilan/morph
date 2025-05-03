@@ -101,7 +101,7 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[Bot] No response from AI")
 	} else {
 		log.Printf("[Bot] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
-		deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", response.Amount)
+		deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", response.Amount)
 
 		url, err := shortURLService.Shorten(deepLink)
 		if err != nil {
