@@ -41,6 +41,11 @@ type WebhookPayload struct {
 	Data StatementData `json:"data"`
 }
 
+// Amount float64 returns the amount in float64 format
+func (s *StatementItem) AmountFloat() float64 {
+	return float64(s.Amount) / 100
+}
+
 // ParseWebhookRequest parses the webhook request and returns the payload
 func ParseWebhookRequest(r *http.Request) (*WebhookPayload, error) {
 	body, err := io.ReadAll(r.Body)
