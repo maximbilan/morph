@@ -25,6 +25,8 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	message := bot.Parse(r.Body)
 	if message == nil {
 		log.Printf("[Bot] No message to process")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
 		return
 	}
 	log.Printf("[Bot] Update: %s", message.Text)
@@ -69,6 +71,12 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 	payload, err := mono.ParseWebhookRequest(r)
 	if err != nil {
 		log.Printf("[Mono] Error parsing webhook: %s", err.Error())
+	}
+	if payload == nil {
+		log.Printf("[Mono] No payload to process")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+		return
 	}
 
 	mmcCategory, err := category.GetCategoryFromMCC(payload.Data.StatementItem.MCC)
