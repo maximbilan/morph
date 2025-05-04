@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"time"
 
 	"github.com/invopop/jsonschema"
 	"github.com/morph/internal/aiservice"
@@ -32,6 +33,12 @@ func generateSchema[T any]() interface{} {
 }
 
 func (service OpenAI) Request(name string, description string, systemPrompt string, userPrompt string, ctx *context.Context) *aiservice.Response {
+	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime)
+		log.Printf("[OpenAI] Request took %v", duration)
+	}()
+
 	ai := createAI()
 
 	var responseSchema = generateSchema[aiservice.Response]()
