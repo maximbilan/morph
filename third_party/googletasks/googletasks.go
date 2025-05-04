@@ -10,7 +10,6 @@ import (
 
 	cloudtasks "cloud.google.com/go/cloudtasks/apiv2"
 	taskspb "cloud.google.com/go/cloudtasks/apiv2/cloudtaskspb"
-	"github.com/capymind/internal/taskservice"
 	"github.com/morph/internal/taskservice"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -33,21 +32,33 @@ func (tasks GoogleTasks) Close() {
 	client.Close()
 }
 
-// Schedule a cloud task
 func (tasks GoogleTasks) ScheduleMessage(ctx *context.Context, scheduledMessage taskservice.ScheduledMessage, timeOffset time.Time) {
+	queuePath, url := prepareURLs("messages", "sendMessage")
+	scheduleTask(ctx, queuePath, url, scheduledMessage, timeOffset)
+}
+
+func (tasks GoogleTasks) ScheduleTransaction(ctx *context.Context, scheduledTransaction taskservice.ScheduledTransaction, timeOffset time.Time) {
+	queuePath, url := prepareURLs("transactions", "monoHandler")
+	scheduleTask(ctx, queuePath, url, scheduledTransaction, timeOffset)
+}
+
+func prepareURLs(queueID string, functionName string) (string, string) {
 	projectID := os.Getenv("MORPH_PROJECT_ID")
 	locationID := os.Getenv("MORPH_SERVER_REGION")
-	queueID := "messages"
 	queuePath := fmt.Sprintf("projects/%s/locations/%s/queues/%s", projectID, locationID, queueID)
-	url := fmt.Sprintf("https://%s-%s.cloudfunctions.net/%s", locationID, projectID, "sendMessage")
+	url := fmt.Sprintf("https://%s-%s.cloudfunctions.net/%s", locationID, projectID, functionName)
+	return queuePath, url
+}
 
+// Schedule a cloud task
+func scheduleTask(ctx *context.Context, queue string, url string, data any, timeOffset time.Time) {
 	timestamp := timestamppb.Timestamp{
 		Seconds: timeOffset.Unix(),
 		Nanos:   int32(timeOffset.Nanosecond()),
 	}
 
 	req := &taskspb.CreateTaskRequest{
-		Parent: queuePath,
+		Parent: queue,
 		Task: &taskspb.Task{
 			MessageType: &taskspb.Task_HttpRequest{
 				HttpRequest: &taskspb.HttpRequest{
@@ -59,7 +70,7 @@ func (tasks GoogleTasks) ScheduleMessage(ctx *context.Context, scheduledMessage 
 		},
 	}
 
-	payload, err := json.Marshal(scheduledMessage)
+	payload, err := json.Marshal(data)
 	if err != nil {
 		log.Printf("[Scheduler] Error marshalling payload, %s", err.Error())
 		return
