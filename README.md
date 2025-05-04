@@ -7,7 +7,7 @@ Morph is a serverless application built on Google Cloud Functions that helps man
 The application consists of four main Google Cloud Functions that work together to process and manage financial transactions:
 
 ### 1. `cashHandler`
-- **Purpose**: Processes manual cash transactions entered by users
+- **Purpose**: Processes manual cash transactions entered by users via Telegram
 - **Flow**:
   1. Receives transaction details via HTTP request
   2. Uses AI to categorize the transaction
