@@ -6,10 +6,7 @@ import (
 	"net/http"
 
 	"github.com/morph/internal/taskservice"
-	"github.com/morph/third_party/telegram"
 )
-
-var bot telegram.Telegram
 
 func SendMessage(w http.ResponseWriter, r *http.Request) {
 	var msg taskservice.ScheduledMessage
