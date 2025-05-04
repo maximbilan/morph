@@ -2,21 +2,17 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/morph/internal/category"
-	"github.com/morph/internal/taskservice"
 	"github.com/morph/third_party/moneywiz"
 	"github.com/morph/third_party/mono"
 	"github.com/morph/third_party/openai"
 	"github.com/morph/third_party/shortio"
-	"github.com/morph/third_party/telegram"
 )
 
-var bot telegram.Telegram
 var aiService openai.OpenAI
 var shortURLService shortio.ShortIO
 var deepLinkGenerator moneywiz.DeepLinkGenerator
@@ -139,19 +135,4 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[Bot] Sent message to chat %d", chatID)
 		}
 	}()
-}
-
-func SendMessage(w http.ResponseWriter, r *http.Request) {
-	var msg taskservice.ScheduledMessage
-	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-		log.Printf("[Morph] Could not parse message %s", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Could not parse message"))
-		return
-	}
-
-	bot.SendMessage(msg.ChatID, msg.Text, msg.ReplyToMessageID)
-	log.Printf("[Scheduler] Message sent to user: %d", msg.ChatID)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
 }
