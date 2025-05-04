@@ -1,6 +1,6 @@
 # Morph - Financial Transaction Management System
 
-Morph is a serverless application built on Google Cloud Functions that helps manage and categorize financial transactions. The system integrates with Monobank for transaction monitoring and uses AI to automatically categorize expenses.
+Morph is a serverless application built on Google Cloud Functions that helps manage and categorize financial transactions. The system integrates with Monobank for transaction monitoring and uses AI to automatically categorize expenses. The primary output of the system is deep links for the MoneyWiz app, allowing users to quickly add categorized expenses to their financial tracking.
 
 ## Architecture Overview
 
