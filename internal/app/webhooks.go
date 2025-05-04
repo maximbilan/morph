@@ -52,6 +52,10 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx := context.Background()
+	taskService.Connect(&ctx)
+	defer taskService.Close()
+
 	scheduledTransaction := taskservice.ScheduledTransaction{
 		ChatID:      chatID,
 		MCC:         payload.Data.StatementItem.MCC,
@@ -60,7 +64,6 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		Amount:      payload.Data.StatementItem.AmountFloat(),
 	}
 
-	ctx := context.Background()
 	taskService.ScheduleTransaction(&ctx, scheduledTransaction, time.Now())
 
 	w.WriteHeader(http.StatusOK)
