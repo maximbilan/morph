@@ -65,6 +65,9 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Cash message handled")
 }
 
+func MonoHandler(w http.ResponseWriter, r *http.Request) {
+}
+
 func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling Mono WebHook...")
 
@@ -134,4 +137,7 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[Bot] Sent message to chat %d", chatID)
 		}
 	}()
+}
+
+func SendMessage(w http.ResponseWriter, r *http.Request) {
 }
