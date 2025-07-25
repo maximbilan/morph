@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"time"
 
@@ -57,9 +58,11 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
-	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", response.Amount)
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", response.Amount)
+	absoluteAmount := math.Abs(response.Amount)
+
+	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
+	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
+	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", absoluteAmount)
 
 	url, err := shortURLService.Shorten(deepLink)
 	if err != nil {
