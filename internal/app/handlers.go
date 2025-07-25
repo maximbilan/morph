@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"time"
 
@@ -38,7 +39,7 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You're a data analyst. You have to classify the input into categories and subcategories. The input is a free text. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. The input usually is in Ukrainian language. If you can't find any proper categories, it should go to the Other category with no subcategory. For example, the input is: '400 Вокал'. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
+	systemPrompt := "You're a data analyst. Classify the input into categories and subcategories. The input is a free text. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. The input usually is in Ukrainian language. If you can't find any proper categories, it should go to the Other category with no subcategory. For example, the input is: '400 Вокал'. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
 	userPrompt := "The input is: " + message.Text
 
 	response := aiService.Request("Morph", "Translares free input into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
@@ -57,9 +58,11 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
-	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", response.Amount)
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", response.Amount)
+	absoluteAmount := math.Abs(response.Amount)
+
+	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
+	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
+	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", absoluteAmount)
 
 	url, err := shortURLService.Shorten(deepLink)
 	if err != nil {
@@ -102,8 +105,8 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You're a data analyst. You have to classify the input into categories and subcategories. The input is a transaction from Bank. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. If you can't find any proper categories, it should go to the Other category with no subcategory. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
-	userPrompt := "The transaction from Bank is: " + transactionStr
+	systemPrompt := "You're a data analyst. Classify the input into categories and subcategories. The input is a transaction from Bank. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. If you can't find any proper categories, it should go to the Other category with no subcategory. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
+	userPrompt := "The transaction from Bank is in JSON format: " + transactionStr
 
 	chatId := transaction.ChatID
 	response := aiService.Request("Morph", "Translares Monobank transaction into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
@@ -120,9 +123,11 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
-	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f\n", response.Category, response.Subcategory, response.Amount)
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", response.Amount)
+	absoluteAmount := math.Abs(response.Amount)
+
+	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
+	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f\n", response.Category, response.Subcategory, absoluteAmount)
+	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", absoluteAmount)
 
 	url, err := shortURLService.Shorten(deepLink)
 	if err != nil {
