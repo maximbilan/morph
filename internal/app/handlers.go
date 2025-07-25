@@ -123,9 +123,11 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, response.Amount)
-	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f\n", response.Category, response.Subcategory, response.Amount)
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", response.Amount)
+	absoluteAmount := math.Abs(response.Amount)
+
+	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
+	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f\n", response.Category, response.Subcategory, absoluteAmount)
+	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", absoluteAmount)
 
 	url, err := shortURLService.Shorten(deepLink)
 	if err != nil {
