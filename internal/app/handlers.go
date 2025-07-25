@@ -106,7 +106,7 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	hints := category.GetHintsInJSON()
 
 	systemPrompt := "You're a data analyst. You have to classify the input into categories and subcategories. The input is a transaction from Bank. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. If you can't find any proper categories, it should go to the Other category with no subcategory. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
-	userPrompt := "The transaction from Bank is: " + transactionStr
+	userPrompt := "The transaction from Bank is in JSON format: " + transactionStr
 
 	chatId := transaction.ChatID
 	response := aiService.Request("Morph", "Translares Monobank transaction into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
