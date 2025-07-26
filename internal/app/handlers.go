@@ -39,8 +39,8 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You're a data analyst. Classify the input into categories and subcategories. The input is a free text. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. The input usually is in Ukrainian language. If you can't find any proper categories, it should go to the Other category with no subcategory. For example, the input is: '400 Вокал'. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
-	userPrompt := "The input is: " + message.Text
+	systemPrompt := "You're a data analyst. Your task is to determine a category and a subcategory based on the input. The input is a free text. The output should be in JSON format with fields: category, subcategory, and amount. The category and subcategory have a `string` type. The amount is a float. The input usually is in Ukrainian language. If you can't find any proper categories, it should go to the `Other` category with no subcategory. For example, the input is: '400 Вокал'. The output should be: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + " Also, here are some hints for categories: " + hints
+	userPrompt := "Classify the following input: " + message.Text
 
 	response := aiService.Request("Morph", "Translares free input into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
 	if response == nil {
@@ -105,8 +105,8 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You're a data analyst. Classify the input into categories and subcategories. The input is a transaction from Bank. The output should be in JSON format with fields: category, subcategory, amount. The category and subcategory are strings. The amount is a float. If you can't find any proper categories, it should go to the Other category with no subcategory. The output should be like this: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
-	userPrompt := "The transaction from Bank is in JSON format: " + transactionStr
+	systemPrompt := "You're a data analyst. Your task is to determine a category and a subcategory based on the input. The input is a transaction from the bank. The output should be in JSON format with the following fields: category, subcategory, and amount. The category and subcategory have a `string` type. The amount is a float. If you can't find any proper categories, it should go to the `Other` category with no subcategory. For example: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + " " + " Also, here are some hints for categories: " + hints
+	userPrompt := "Classify the following bank transaction: " + transactionStr
 
 	chatId := transaction.ChatID
 	response := aiService.Request("Morph", "Translares Monobank transaction into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
