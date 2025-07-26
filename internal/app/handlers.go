@@ -39,7 +39,7 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You're a data analyst. Your task is to determine a category and a subcategory based on the input. The input is a free text. The output should be in JSON format with fields: category, subcategory, and amount. The category and subcategory have a `string` type. The amount is a float. The input usually is in Ukrainian language. If you can't find any proper categories, it should go to the `Other` category with no subcategory. For example, the input is: '400 Вокал'. The output should be: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
+	systemPrompt := "You're a data analyst. Your task is to determine a category and a subcategory based on the input. The input is a free text. The output should be in JSON format with fields: category, subcategory, and amount. The category and subcategory have a `string` type. The amount is a float. The input usually is in Ukrainian language. If you can't find any proper categories, it should go to the `Other` category with no subcategory. For example, the input is: '400 Вокал'. The output should be: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + " Also, here are some hints for categories: " + hints
 	userPrompt := "Classify the following input: " + message.Text
 
 	response := aiService.Request("Morph", "Translares free input into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
