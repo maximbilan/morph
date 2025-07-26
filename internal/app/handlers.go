@@ -105,7 +105,7 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You're a data analyst. Your task is to figure out a category and a subcategory based on the input. The input is a transaction from the bank. The output should be in JSON format with the following fields: category, subcategory, and amount. The category and subcategory have a `string` type. The amount is a float. If you can't find any proper categories, it should go to the `Other` category with no subcategory. For example: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + "Also, here are some hints for categories: " + hints
+	systemPrompt := "You're a data analyst. Your task is to figure out a category and a subcategory based on the input. The input is a transaction from the bank. The output should be in JSON format with the following fields: category, subcategory, and amount. The category and subcategory have a `string` type. The amount is a float. If you can't find any proper categories, it should go to the `Other` category with no subcategory. For example: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Here is the JSON of categories and subcategories: " + categories + " " + "Also, here are some hints for categories: " + hints
 	userPrompt := "Classify the following bank transaction: " + transactionStr
 
 	chatId := transaction.ChatID
