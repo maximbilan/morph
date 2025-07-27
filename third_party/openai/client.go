@@ -60,7 +60,7 @@ func (service OpenAI) Request(name string, description string, systemPrompt stri
 				JSONSchema: schemaParam,
 			},
 		},
-		Model: openai.ChatModelGPT4oMini,
+		Model: openai.ChatModelGPT4o,
 	})
 
 	response := aiservice.Response{}
