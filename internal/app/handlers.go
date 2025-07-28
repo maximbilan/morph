@@ -39,7 +39,7 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You are a data analyst. Your task is to classify the input into a category, subcategory, and amount. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Output a single-line JSON object with only these fields: category, subcategory, amount. Example: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
+	systemPrompt := "You are a data analyst. Your task is to classify the input into a category, subcategory, and amount. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Output a single-line JSON object with only these fields: category, subcategory, amount. Example of the output: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
 	userPrompt := "Classify this input: " + message.Text
 
 	response := aiService.Request("Morph", "Translares free input into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
@@ -105,7 +105,7 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You are a data analyst. Your task is to classify the bank transaction into a category, subcategory, and amount. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Output a single-line JSON object with only these fields: category, subcategory, amount. Example: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
+	systemPrompt := "You are a data analyst. Your task is to classify the bank transaction into a category, subcategory, and amount. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Output a single-line JSON object with only these fields: category, subcategory, amount. Example of the output: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
 	userPrompt := "Classify this bank transaction: " + transactionStr
 
 	chatId := transaction.ChatID

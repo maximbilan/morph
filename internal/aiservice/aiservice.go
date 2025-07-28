@@ -3,7 +3,7 @@ package aiservice
 import "context"
 
 type Response struct {
-	Category    string  `json:"text"`
+	Category    string  `json:"category"`
 	Subcategory string  `json:"subcategory"`
 	Amount      float64 `json:"amount"`
 }
