@@ -13,18 +13,6 @@ import (
 	"github.com/morph/internal/taskservice"
 )
 
-// shortenURLAndAppendToText shortens a deep link URL and appends it to the text message.
-// Returns the updated text with the shortened URL or error message.
-func shortenURLAndAppendToText(deepLink, text string) string {
-	url, err := shortURLService.Shorten(deepLink)
-	if err != nil {
-		log.Printf("[Morph] Error shortening URL: %v", err)
-		return text + "\nError shortening URL: " + err.Error()
-	}
-	log.Printf("[Morph] Shortened URL: %s", url)
-	return text + "\n" + url
-}
-
 func CashHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("[Morph] Started cash handling...")
 
@@ -76,7 +64,14 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
 	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", absoluteAmount)
 
-	text = shortenURLAndAppendToText(deepLink, text)
+	url, err := shortURLService.Shorten(deepLink)
+	if err != nil {
+		log.Printf("[Morph] Error shortening URL: %v", err)
+		text += "\nError shortening URL: " + err.Error()
+	} else {
+		log.Printf("[Morph] Shortened URL: %s", url)
+		text += "\n" + url
+	}
 
 	log.Printf("[Morph] Sending message to chat %d", message.ChatID)
 
@@ -134,7 +129,14 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f\n", response.Category, response.Subcategory, absoluteAmount)
 	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", absoluteAmount)
 
-	linkMsg = shortenURLAndAppendToText(deepLink, linkMsg)
+	url, err := shortURLService.Shorten(deepLink)
+	if err != nil {
+		log.Printf("[Morph] Error shortening URL: %v", err)
+		linkMsg += "\nError shortening URL: " + err.Error()
+	} else {
+		log.Printf("[Morph] Shortened URL: %s", url)
+		linkMsg += url
+	}
 
 	log.Printf("[Morph] Sending message to chat %d", chatId)
 
