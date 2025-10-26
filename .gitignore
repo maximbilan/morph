@@ -26,7 +26,6 @@ go.work.sum
 
 # executable
 morph
-main
 __debug_*
 
 # credentials
