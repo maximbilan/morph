@@ -1,6 +1,7 @@
 package shorturl
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -59,18 +60,48 @@ func (f *FallbackService) shouldFallback(err error) bool {
 	
 	errorMsg := err.Error()
 	
-	// Check for ShortIO limit error
+	// Check for ShortIO limit error message
 	if strings.Contains(errorMsg, "You are out of your account link or domain limit") {
 		return true
 	}
 	
-	// Check for HTTP 402 status (Payment Required)
-	if strings.Contains(errorMsg, "statusCode\":402") {
+	// Try to parse the error message as JSON to check for statusCode 402
+	if f.isStatusCode402(errorMsg) {
 		return true
 	}
 	
 	// Add more conditions as needed for other services
 	return false
+}
+
+// isStatusCode402 checks if the error message contains a JSON response with statusCode 402
+func (f *FallbackService) isStatusCode402(errorMsg string) bool {
+	// Look for JSON structure in the error message
+	// The error format is: "failed to shorten URL: {"message":"...","success":false,"statusCode":402}"
+	
+	// Find the JSON part after "failed to shorten URL: "
+	jsonStart := strings.Index(errorMsg, "failed to shorten URL: ")
+	if jsonStart == -1 {
+		return false
+	}
+	
+	jsonPart := errorMsg[jsonStart+len("failed to shorten URL: "):]
+	
+	// Try to parse the JSON
+	var errorResponse struct {
+		Message    string `json:"message"`
+		Success    bool   `json:"success"`
+		StatusCode int    `json:"statusCode"`
+	}
+	
+	if err := json.Unmarshal([]byte(jsonPart), &errorResponse); err != nil {
+		// If JSON parsing fails, fall back to string matching
+		return strings.Contains(errorMsg, `"statusCode":402`) || 
+			   strings.Contains(errorMsg, `\"statusCode\":402`)
+	}
+	
+	// Check if statusCode is 402
+	return errorResponse.StatusCode == 402
 }
 
 // AddService adds a new service to the fallback chain

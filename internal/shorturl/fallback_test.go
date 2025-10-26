@@ -79,22 +79,34 @@ func TestFallbackService_Shorten_AllFail(t *testing.T) {
 func TestShouldFallback(t *testing.T) {
 	fallback := &FallbackService{}
 	
-	// Test ShortIO limit error
+	// Test ShortIO limit error with full JSON
 	err1 := errors.New("failed to shorten URL: {\"message\":\"You are out of your account link or domain limit. Upgrade your account to add more links\",\"success\":false,\"statusCode\":402}")
 	if !fallback.shouldFallback(err1) {
 		t.Error("Expected shouldFallback to return true for ShortIO limit error")
 	}
 	
-	// Test HTTP 402 status
+	// Test HTTP 402 status with minimal JSON
 	err2 := errors.New("failed to shorten URL: {\"statusCode\":402}")
 	if !fallback.shouldFallback(err2) {
 		t.Error("Expected shouldFallback to return true for HTTP 402 error")
 	}
 	
+	// Test message-based fallback (without JSON)
+	err3 := errors.New("failed to shorten URL: You are out of your account link or domain limit")
+	if !fallback.shouldFallback(err3) {
+		t.Error("Expected shouldFallback to return true for message-based limit error")
+	}
+	
 	// Test other error
-	err3 := errors.New("network error")
-	if fallback.shouldFallback(err3) {
+	err4 := errors.New("network error")
+	if fallback.shouldFallback(err4) {
 		t.Error("Expected shouldFallback to return false for network error")
+	}
+	
+	// Test non-402 JSON error
+	err5 := errors.New("failed to shorten URL: {\"message\":\"Invalid URL\",\"success\":false,\"statusCode\":400}")
+	if fallback.shouldFallback(err5) {
+		t.Error("Expected shouldFallback to return false for non-402 JSON error")
 	}
 }
 
