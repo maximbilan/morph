@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 )
 
 type ShortIO struct{}
@@ -25,6 +24,15 @@ type ErrorResponse struct {
 	Message    string `json:"message"`
 	Success    bool   `json:"success"`
 	StatusCode int    `json:"statusCode"`
+}
+
+type ShortIOError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *ShortIOError) Error() string {
+	return e.Message
 }
 
 func (s ShortIO) Shorten(URL string) (string, error) {
@@ -75,7 +83,11 @@ func (s ShortIO) shortenWithDomain(URL, domain string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("failed to shorten URL with domain %s (status %d): %s", domain, resp.StatusCode, string(body))
+		// Create a custom error that includes the status code for better error detection
+		return "", &ShortIOError{
+			StatusCode: resp.StatusCode,
+			Message:    fmt.Sprintf("failed to shorten URL with domain %s (status %d): %s", domain, resp.StatusCode, string(body)),
+		}
 	}
 
 	var response ShortenResponse
@@ -90,10 +102,11 @@ func (s ShortIO) is402Error(err error) bool {
 	if err == nil {
 		return false
 	}
-	
-	// Check if the error message contains the 402 error pattern
-	errStr := err.Error()
-	return errStr != "" && 
-		   (strings.Contains(errStr, "statusCode\":402") || 
-		    strings.Contains(errStr, "out of your account link or domain limit"))
+
+	// Check if it's our custom error with status code 402
+	if shortIOErr, ok := err.(*ShortIOError); ok {
+		return shortIOErr.StatusCode == 402
+	}
+
+	return false
 }
