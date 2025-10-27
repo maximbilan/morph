@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type ShortIO struct{}
@@ -20,10 +21,36 @@ type ShortenResponse struct {
 	ShortURL string `json:"shortURL"`
 }
 
+type ErrorResponse struct {
+	Message    string `json:"message"`
+	Success    bool   `json:"success"`
+	StatusCode int    `json:"statusCode"`
+}
+
 func (s ShortIO) Shorten(URL string) (string, error) {
+	// Try with primary domain first
+	shortURL, err := s.shortenWithDomain(URL, "morph-service.short.gy")
+	if err == nil {
+		return shortURL, nil
+	}
+
+	// Check if it's a 402 error (domain limit exceeded)
+	if s.is402Error(err) {
+		// Retry with alternative domain
+		shortURL, retryErr := s.shortenWithDomain(URL, "morph2")
+		if retryErr == nil {
+			return shortURL, nil
+		}
+		return "", fmt.Errorf("failed to shorten URL with both domains: primary error: %v, retry error: %v", err, retryErr)
+	}
+
+	return "", err
+}
+
+func (s ShortIO) shortenWithDomain(URL, domain string) (string, error) {
 	apiURL := "https://api.short.io/links"
 	requestBody := ShortenRequest{
-		Domain:      "morph-service.short.gy",
+		Domain:      domain,
 		OriginalURL: URL,
 	}
 
@@ -48,7 +75,7 @@ func (s ShortIO) Shorten(URL string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("failed to shorten URL: %s", string(body))
+		return "", fmt.Errorf("failed to shorten URL with domain %s (status %d): %s", domain, resp.StatusCode, string(body))
 	}
 
 	var response ShortenResponse
@@ -57,4 +84,16 @@ func (s ShortIO) Shorten(URL string) (string, error) {
 	}
 
 	return response.ShortURL, nil
+}
+
+func (s ShortIO) is402Error(err error) bool {
+	if err == nil {
+		return false
+	}
+	
+	// Check if the error message contains the 402 error pattern
+	errStr := err.Error()
+	return errStr != "" && 
+		   (strings.Contains(errStr, "statusCode\":402") || 
+		    strings.Contains(errStr, "out of your account link or domain limit"))
 }
