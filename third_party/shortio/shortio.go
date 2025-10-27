@@ -20,45 +20,10 @@ type ShortenResponse struct {
 	ShortURL string `json:"shortURL"`
 }
 
-type ErrorResponse struct {
-	Message    string `json:"message"`
-	Success    bool   `json:"success"`
-	StatusCode int    `json:"statusCode"`
-}
-
-type ShortIOError struct {
-	StatusCode int
-	Message    string
-}
-
-func (e *ShortIOError) Error() string {
-	return e.Message
-}
-
 func (s ShortIO) Shorten(URL string) (string, error) {
-	// Try with primary domain first
-	shortURL, err := s.shortenWithDomain(URL, "morph-service.short.gy")
-	if err == nil {
-		return shortURL, nil
-	}
-
-	// Check if it's a 402 error (domain limit exceeded)
-	if s.is402Error(err) {
-		// Retry with alternative domain
-		shortURL, retryErr := s.shortenWithDomain(URL, "morph2")
-		if retryErr == nil {
-			return shortURL, nil
-		}
-		return "", fmt.Errorf("failed to shorten URL with both domains: primary error: %v, retry error: %v", err, retryErr)
-	}
-
-	return "", err
-}
-
-func (s ShortIO) shortenWithDomain(URL, domain string) (string, error) {
 	apiURL := "https://api.short.io/links"
 	requestBody := ShortenRequest{
-		Domain:      domain,
+		Domain:      "morph-service.short.gy",
 		OriginalURL: URL,
 	}
 
@@ -83,11 +48,7 @@ func (s ShortIO) shortenWithDomain(URL, domain string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body)
-		// Create a custom error that includes the status code for better error detection
-		return "", &ShortIOError{
-			StatusCode: resp.StatusCode,
-			Message:    fmt.Sprintf("failed to shorten URL with domain %s (status %d): %s", domain, resp.StatusCode, string(body)),
-		}
+		return "", fmt.Errorf("failed to shorten URL: %s", string(body))
 	}
 
 	var response ShortenResponse
@@ -96,17 +57,4 @@ func (s ShortIO) shortenWithDomain(URL, domain string) (string, error) {
 	}
 
 	return response.ShortURL, nil
-}
-
-func (s ShortIO) is402Error(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	// Check if it's our custom error with status code 402
-	if shortIOErr, ok := err.(*ShortIOError); ok {
-		return shortIOErr.StatusCode == 402
-	}
-
-	return false
 }
