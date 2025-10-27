@@ -1,0 +1,59 @@
+name: Cleanup Short.io Links
+description: This workflow cleans up all existing links for the morph-service.short.gy domain
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    name: Cleanup Short.io Links
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: 'read'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Start cleanup
+      run: |
+        echo "🚀 Starting cleanup of all Short.io links for morph-service.short.gy domain"
+
+    - name: Check required secrets
+      run: |
+        if [ -z "${{ secrets.MORPH_REDIRECT_KEY }}" ]; then
+          echo "❌ MORPH_REDIRECT_KEY secret is not set"
+          exit 1
+        fi
+        echo "✅ Required secrets are available"
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq curl
+
+    - name: Run Short.io cleanup script
+      run: |
+        chmod +x ./scripts/cleanup_shortio_links.sh
+        ./scripts/cleanup_shortio_links.sh
+      env:
+        MORPH_REDIRECT_KEY: ${{ secrets.MORPH_REDIRECT_KEY }}
+
+    - name: Cleanup summary
+      if: always()
+      run: |
+        echo "## Short.io Links Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Workflow:** Cleanup Short.io Links" >> $GITHUB_STEP_SUMMARY
+        echo "**Domain:** morph-service.short.gy" >> $GITHUB_STEP_SUMMARY
+        echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Cleanup completed successfully" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Cleanup failed or was cancelled" >> $GITHUB_STEP_SUMMARY
+        fi
