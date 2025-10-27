@@ -6,9 +6,6 @@
 # Usage:
 #   export MORPH_REDIRECT_KEY="your_api_key_here"
 #   ./scripts/cleanup_shortio_links.sh
-#
-# Debug mode (shows API responses):
-#   DEBUG=true ./scripts/cleanup_shortio_links.sh
 
 # set -e  # Commented out to prevent silent exits
 
@@ -17,7 +14,6 @@ DOMAIN="morph-service.short.gy"
 API_BASE="https://api.short.io/api"
 DELETE_API_BASE="https://api.short.io"
 LIMIT=100
-DEBUG=${DEBUG:-false}  # Set DEBUG=true to enable debug output
 
 # Check if required environment variable is set
 if [ -z "$MORPH_REDIRECT_KEY" ]; then
@@ -34,10 +30,6 @@ get_domain_id() {
     local response=$(curl -s -H "Authorization: $MORPH_REDIRECT_KEY" \
         "$API_BASE/domains")
 
-    if [ "$DEBUG" = "true" ]; then
-        echo "DEBUG: Domains API response:" >&2
-        echo "$response" | jq . 2>/dev/null || echo "$response" >&2
-    fi
 
     # Check if response is valid JSON
     if ! echo "$response" | jq empty 2>/dev/null; then
@@ -72,10 +64,6 @@ get_links() {
     local response=$(curl -s -H "Authorization: $MORPH_REDIRECT_KEY" \
         "$API_BASE/links?domain_id=$domain_id&limit=$limit")
 
-    if [ "$DEBUG" = "true" ]; then
-        echo "DEBUG: Links API response:" >&2
-        echo "$response" | jq . 2>/dev/null || echo "$response" >&2
-    fi
 
     # Check if response is valid JSON
     if ! echo "$response" | jq empty 2>/dev/null; then
@@ -119,10 +107,6 @@ delete_links() {
                 -H "Authorization: $MORPH_REDIRECT_KEY" \
                 "$DELETE_API_BASE/links/$link_id")
 
-            if [ "$DEBUG" = "true" ]; then
-                echo "DEBUG: Delete response for $link_id:"
-                echo "$response" | jq . 2>/dev/null || echo "$response"
-            fi
 
             # Check if request was successful
             local success=$(echo "$response" | jq -r '.success // false')
