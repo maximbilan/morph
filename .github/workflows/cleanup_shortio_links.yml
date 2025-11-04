@@ -3,6 +3,9 @@ description: This workflow cleans up all existing links for the morph-service.sh
 
 on:
   workflow_dispatch:
+  schedule:
+    # Run every month on the 1st at 0:00 UTC (GMT)
+    - cron: '0 0 1 * *'
 
 jobs:
   cleanup:
