@@ -1,6 +1,9 @@
 package moneywiz
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestDeepLinkGenerator_Create(t *testing.T) {
 	tests := []struct {
@@ -9,6 +12,7 @@ func TestDeepLinkGenerator_Create(t *testing.T) {
 		subcategory string
 		account     string
 		amount      float64
+		date        time.Time
 		want        string
 	}{
 		{
@@ -17,7 +21,8 @@ func TestDeepLinkGenerator_Create(t *testing.T) {
 			subcategory: "Groceries",
 			account:     "Cash",
 			amount:      42.50,
-			want:        "moneywiz://expense?amount=42.50&account=Cash&category=Food/Groceries&save=true",
+			date:        time.Date(2024, 12, 1, 0, 0, 0, 0, time.UTC),
+			want:        "moneywiz://expense?amount=42.50&account=Cash&category=Food/Groceries&date=2024-12-01&save=true",
 		},
 		{
 			name:        "Without subcategory",
@@ -25,7 +30,8 @@ func TestDeepLinkGenerator_Create(t *testing.T) {
 			subcategory: "",
 			account:     "Credit Card",
 			amount:      15.75,
-			want:        "moneywiz://expense?amount=15.75&account=Credit Card&category=Transport&save=true",
+			date:        time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			want:        "moneywiz://expense?amount=15.75&account=Credit Card&category=Transport&date=2024-01-15&save=true",
 		},
 		{
 			name:        "Zero amount",
@@ -33,14 +39,15 @@ func TestDeepLinkGenerator_Create(t *testing.T) {
 			subcategory: "Utilities",
 			account:     "Bank",
 			amount:      0.00,
-			want:        "moneywiz://expense?amount=0.00&account=Bank&category=Bills/Utilities&save=true",
+			date:        time.Date(2023, 6, 30, 0, 0, 0, 0, time.UTC),
+			want:        "moneywiz://expense?amount=0.00&account=Bank&category=Bills/Utilities&date=2023-06-30&save=true",
 		},
 	}
 
 	generator := DeepLinkGenerator{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := generator.Create(tt.category, tt.subcategory, tt.account, tt.amount)
+			got := generator.Create(tt.category, tt.subcategory, tt.account, tt.amount, tt.date)
 			if got != tt.want {
 				t.Errorf("DeepLinkGenerator.Create() = %v, want %v", got, tt.want)
 			}

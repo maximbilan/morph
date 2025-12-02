@@ -62,7 +62,7 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
 	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", absoluteAmount)
+	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", absoluteAmount, time.Now())
 
 	url, err := shortURLService.Shorten(deepLink)
 	if err != nil {
@@ -127,7 +127,17 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
 	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f\n", response.Category, response.Subcategory, absoluteAmount)
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", absoluteAmount)
+
+	// Determine the transaction time. Mono API may provide time in seconds or milliseconds since epoch.
+	// Use a heuristic: treat large values as milliseconds.
+	var txTime time.Time
+	if transaction.Time > 1e12 {
+		txTime = time.Unix(transaction.Time/1000, 0)
+	} else {
+		txTime = time.Unix(transaction.Time, 0)
+	}
+
+	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", absoluteAmount, txTime)
 
 	url, err := shortURLService.Shorten(deepLink)
 	if err != nil {
