@@ -21,8 +21,9 @@ func TestDeepLinkGenerator_Create(t *testing.T) {
 			subcategory: "Groceries",
 			account:     "Cash",
 			amount:      42.50,
-			date:        time.Date(2024, 12, 1, 0, 0, 0, 0, time.UTC),
-			want:        "moneywiz://expense?amount=42.50&account=Cash&category=Food/Groceries&date=2024-12-01&save=true",
+			// 2024-12-01 14:30:45 UTC
+			date: time.Date(2024, 12, 1, 14, 30, 45, 0, time.UTC),
+			want: "moneywiz://expense?amount=42.50&account=Cash&category=Food/Groceries&date=2024-12-01%2014:30:45&save=true",
 		},
 		{
 			name:        "Without subcategory",
@@ -30,8 +31,9 @@ func TestDeepLinkGenerator_Create(t *testing.T) {
 			subcategory: "",
 			account:     "Credit Card",
 			amount:      15.75,
-			date:        time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			want:        "moneywiz://expense?amount=15.75&account=Credit Card&category=Transport&date=2024-01-15&save=true",
+			// 2024-01-15 00:00:00 UTC
+			date: time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			want: "moneywiz://expense?amount=15.75&account=Credit Card&category=Transport&date=2024-01-15%2000:00:00&save=true",
 		},
 		{
 			name:        "Zero amount",
@@ -39,8 +41,9 @@ func TestDeepLinkGenerator_Create(t *testing.T) {
 			subcategory: "Utilities",
 			account:     "Bank",
 			amount:      0.00,
-			date:        time.Date(2023, 6, 30, 0, 0, 0, 0, time.UTC),
-			want:        "moneywiz://expense?amount=0.00&account=Bank&category=Bills/Utilities&date=2023-06-30&save=true",
+			// 2023-06-30 23:59:59 UTC
+			date: time.Date(2023, 6, 30, 23, 59, 59, 0, time.UTC),
+			want: "moneywiz://expense?amount=0.00&account=Bank&category=Bills/Utilities&date=2023-06-30%2023:59:59&save=true",
 		},
 	}
 
