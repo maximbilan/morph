@@ -6,4 +6,5 @@ type ScheduledTransaction struct {
 	Category    string  `json:"category"`
 	Description string  `json:"description"`
 	Amount      float64 `json:"amount"`
+	Time        int64   `json:"time"`
 }
