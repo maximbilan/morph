@@ -16,8 +16,17 @@ func (g DeepLinkGenerator) Create(category string, subcategory string, account s
 		finalizedCategory += "/" + subcategory
 	}
 
+	// Convert the provided time into Ukrainian local time using the IANA zone.
+	// This automatically handles winter/summer (DST) transitions.
+	loc, err := time.LoadLocation("Europe/Kyiv")
+	if err != nil {
+		// Fallback to a fixed winter offset (UTC+02:00) if the location cannot be loaded.
+		loc = time.FixedZone("EET", 2*60*60)
+	}
+	localDate := date.In(loc)
+
 	// MoneyWiz expects date in format: yyyy-MM-dd HH:mm:ss
-	formattedDate := date.Format("2006-01-02 15:04:05")
+	formattedDate := localDate.Format("2006-01-02 15:04:05")
 	// Encode the space as %20 to keep the URL valid while preserving ":" characters.
 	formattedDate = strings.ReplaceAll(formattedDate, " ", "%20")
 
