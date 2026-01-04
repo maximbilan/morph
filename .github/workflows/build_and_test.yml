@@ -1,0 +1,30 @@
+name: Build and Test
+description: This workflow builds and run tests on the project
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache-dependency-path: go.sum
+
+    - name: Install dependencies
+      run: go mod download
+
+    - name: Build the project
+      run: go build ./...
+
+    - name: Run tests
+      run: go test ./...
