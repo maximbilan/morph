@@ -129,6 +129,7 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 		Description: payload.Data.StatementItem.Description,
 		Amount:      payload.Data.StatementItem.AmountFloat(),
 		Time:        payload.Data.StatementItem.Time,
+		IsRefund:    payload.Data.StatementItem.IsRefund(),
 	}
 
 	taskService.ScheduleTransaction(&ctx, scheduledTransaction, time.Now())

@@ -126,7 +126,11 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	absoluteAmount := math.Abs(response.Amount)
 
 	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
-	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f\n", response.Category, response.Subcategory, absoluteAmount)
+	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f", response.Category, response.Subcategory, absoluteAmount)
+	if transaction.IsRefund {
+		linkMsg += "\n🔄 Refund"
+	}
+	linkMsg += "\n"
 
 	// Determine the transaction time. Mono API may provide time in seconds or milliseconds since epoch.
 	// Use a heuristic: treat large values as milliseconds.
