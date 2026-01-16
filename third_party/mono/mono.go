@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 // StatementItem represents a single transaction in Mono
@@ -47,6 +48,12 @@ func (s *StatementItem) AmountFloat() float64 {
 		return float64(-s.Amount) / 100
 	}
 	return float64(s.Amount) / 100
+}
+
+// IsRefund returns true if the transaction is a refund
+// Refunds are identified by the presence of "Скасування" (Cancellation) in the description
+func (s *StatementItem) IsRefund() bool {
+	return strings.Contains(s.Description, "Скасування")
 }
 
 // ParseWebhookRequest parses the webhook request and returns the payload
