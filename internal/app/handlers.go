@@ -88,6 +88,27 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Cash handler finished")
 }
 
+// getAccountNameFromID maps Monobank account IDs to account names for deep links
+func getAccountNameFromID(accountID string) string {
+	accountMap := map[string]string{
+		"a-dnHAO9ExLnboGJP_pdwA": "MonobankUAH",
+		"Llx31dyYA8dahhShny5Vvw":  "MonobankUAHWhite",
+		"WKl9I-LztrH1ZWeafLZEzQ":  "MonobankEUR",
+		"uHsC3WXdFl0H5CucFXfTHg":  "MonobankUSD",
+		"NnyWiNGakLsDRXkTe-EQ9A":  "MonoeAid",
+		"9mnHzIA1Fkjn7kmeKiAoGg":  "MonoFOPUAH",
+		"uUms_k2kDlN6Uyofrs72gw":  "MonoFOPUSD",
+	}
+
+	if accountName, ok := accountMap[accountID]; ok {
+		return accountName
+	}
+
+	// Default fallback if account ID is not found
+	log.Printf("[Morph] Unknown account ID: %s, using MonobankUAH as default", accountID)
+	return "MonobankUAH"
+}
+
 func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	var transaction taskservice.ScheduledTransaction
 	if err := json.NewDecoder(r.Body).Decode(&transaction); err != nil {
@@ -141,7 +162,11 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 		txTime = time.Unix(transaction.Time, 0)
 	}
 
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "MonobankUAH", absoluteAmount, txTime)
+	// Get account name from account ID
+	accountName := getAccountNameFromID(transaction.AccountID)
+	log.Printf("[Morph] Account ID: %s, Account Name: %s", transaction.AccountID, accountName)
+
+	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, accountName, absoluteAmount, txTime)
 
 	url, err := shortURLService.Shorten(deepLink)
 	if err != nil {

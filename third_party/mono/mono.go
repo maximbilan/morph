@@ -2,9 +2,11 @@ package mono
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -71,4 +73,97 @@ func ParseWebhookRequest(r *http.Request) (*WebhookPayload, error) {
 	}
 
 	return &payload, nil
+}
+
+// Account represents a client account
+type Account struct {
+	ID           string   `json:"id"`
+	SendID       string   `json:"sendId"`
+	Balance      int64    `json:"balance"`
+	CreditLimit  int64    `json:"creditLimit"`
+	Type         string   `json:"type"`
+	CurrencyCode int32    `json:"currencyCode"`
+	CashbackType string   `json:"cashbackType"`
+	MaskedPan    []string `json:"maskedPan"`
+	Iban         string   `json:"iban"`
+}
+
+// Jar represents a savings jar
+type Jar struct {
+	ID           string `json:"id"`
+	SendID       string `json:"sendId"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	CurrencyCode int32  `json:"currencyCode"`
+	Balance      int64  `json:"balance"`
+	Goal         int64  `json:"goal"`
+}
+
+// ManagedClientAccount represents an account for a managed client
+type ManagedClientAccount struct {
+	ID           string `json:"id"`
+	Balance      int64  `json:"balance"`
+	CreditLimit  int64  `json:"creditLimit"`
+	Type         string `json:"type"`
+	CurrencyCode int32  `json:"currencyCode"`
+	Iban         string `json:"iban"`
+}
+
+// ManagedClient represents a managed client (e.g., FOP account)
+type ManagedClient struct {
+	ClientID string               `json:"clientId"`
+	TIN      int64                `json:"tin"`
+	Name     string               `json:"name"`
+	Accounts []ManagedClientAccount `json:"accounts"`
+}
+
+// ClientInfo represents the client information response from Mono API
+type ClientInfo struct {
+	ClientID       string          `json:"clientId"`
+	Name           string          `json:"name"`
+	WebHookURL     string          `json:"webHookUrl"`
+	Permissions    string          `json:"permissions"`
+	Accounts       []Account       `json:"accounts"`
+	Jars           []Jar           `json:"jars"`
+	ManagedClients []ManagedClient `json:"managedClients"`
+}
+
+// GetClientInfo retrieves client information including accounts from the Mono API
+func GetClientInfo() (*ClientInfo, error) {
+	apiKey := os.Getenv("MORPH_MONO_API_KEY")
+	if apiKey == "" {
+		return nil, fmt.Errorf("MORPH_MONO_API_KEY environment variable is not set")
+	}
+
+	url := "https://api.monobank.ua/personal/client-info"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("X-Token", apiKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var clientInfo ClientInfo
+	if err := json.Unmarshal(body, &clientInfo); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return &clientInfo, nil
 }
