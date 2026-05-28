@@ -13,6 +13,8 @@ import (
 	"github.com/morph/internal/taskservice"
 )
 
+const cashAccountName = "CashEUR"
+
 func CashHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("[Morph] Started cash handling...")
 
@@ -62,7 +64,7 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
 	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, "Cash", absoluteAmount, time.Now())
+	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, cashAccountName, absoluteAmount, time.Now())
 
 	url, err := shortURLService.Shorten(deepLink)
 	if err != nil {
@@ -92,12 +94,12 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 func getAccountNameFromID(accountID string) string {
 	accountMap := map[string]string{
 		"a-dnHAO9ExLnboGJP_pdwA": "MonobankUAH",
-		"Llx31dyYA8dahhShny5Vvw":  "MonobankUAHWhite",
-		"WKl9I-LztrH1ZWeafLZEzQ":  "MonobankEUR",
-		"uHsC3WXdFl0H5CucFXfTHg":  "MonobankUSD",
-		"NnyWiNGakLsDRXkTe-EQ9A":  "MonoeAid",
-		"9mnHzIA1Fkjn7kmeKiAoGg":  "MonoFOPUAH",
-		"uUms_k2kDlN6Uyofrs72gw":  "MonoFOPUSD",
+		"Llx31dyYA8dahhShny5Vvw": "MonobankUAHWhite",
+		"WKl9I-LztrH1ZWeafLZEzQ": "MonobankEUR",
+		"uHsC3WXdFl0H5CucFXfTHg": "MonobankUSD",
+		"NnyWiNGakLsDRXkTe-EQ9A": "MonoeAid",
+		"9mnHzIA1Fkjn7kmeKiAoGg": "MonoFOPUAH",
+		"uUms_k2kDlN6Uyofrs72gw": "MonoFOPUSD",
 	}
 
 	if accountName, ok := accountMap[accountID]; ok {
