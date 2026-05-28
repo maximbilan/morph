@@ -1,6 +1,6 @@
 package botservice
 
-import "net/http"
+import "io"
 
 type BotMessage struct {
 	MessageID int64
@@ -11,6 +11,6 @@ type BotMessage struct {
 
 type BotService interface {
 	GetChatID() (int64, error)
-	Parse(r *http.Request) *BotMessage
+	Parse(body io.ReadCloser) *BotMessage
 	SendMessage(chatID int64, text string, replyToMessageID *int64)
 }

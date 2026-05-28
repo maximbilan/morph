@@ -75,6 +75,10 @@ func ParseWebhookRequest(r *http.Request) (*WebhookPayload, error) {
 	return &payload, nil
 }
 
+// Client-info types are used by the manual account discovery helper below.
+// They are intentionally kept even though the webhook flow only needs statement data:
+// GetClientInfo lets us fetch Mono account IDs and map them in the app handlers.
+
 // Account represents a client account
 type Account struct {
 	ID           string   `json:"id"`
@@ -111,9 +115,9 @@ type ManagedClientAccount struct {
 
 // ManagedClient represents a managed client (e.g., FOP account)
 type ManagedClient struct {
-	ClientID string               `json:"clientId"`
-	TIN      int64                `json:"tin"`
-	Name     string               `json:"name"`
+	ClientID string                 `json:"clientId"`
+	TIN      int64                  `json:"tin"`
+	Name     string                 `json:"name"`
 	Accounts []ManagedClientAccount `json:"accounts"`
 }
 
@@ -128,7 +132,7 @@ type ClientInfo struct {
 	ManagedClients []ManagedClient `json:"managedClients"`
 }
 
-// GetClientInfo retrieves client information including accounts from the Mono API
+// GetClientInfo retrieves Mono account metadata for operational account-ID discovery.
 func GetClientInfo() (*ClientInfo, error) {
 	apiKey := os.Getenv("MORPH_MONO_API_KEY")
 	if apiKey == "" {
