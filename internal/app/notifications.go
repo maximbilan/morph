@@ -15,9 +15,7 @@ import (
 	"github.com/morph/internal/taskservice"
 )
 
-// notificationRequest is the payload forwarded by the iOS Shortcut that parses a
-// bank push notification into its source app name, title and body. Date is
-// optional and, when present, sets the transaction date on the deep link.
+// notificationRequest is the bank push notification forwarded by the iOS Shortcut.
 type notificationRequest struct {
 	App     string `json:"app"`
 	Title   string `json:"title"`
@@ -25,12 +23,8 @@ type notificationRequest struct {
 	Date    string `json:"date"`
 }
 
-// parseNotificationDate interprets the optional date forwarded by the Shortcut.
-// It accepts an absolute instant (RFC3339 timestamp carrying its own offset, or a
-// Unix epoch in seconds or milliseconds) or a naive datetime copied from the
-// notification text. Naive values have no timezone, so they are read in the same
-// zone the MoneyWiz deep link renders in. It falls back to the current time when
-// the value is absent or unrecognized.
+// parseNotificationDate parses an RFC3339 instant, a Unix epoch (seconds or
+// milliseconds), or a naive datetime (read as Kyiv time). Falls back to now.
 func parseNotificationDate(raw string) time.Time {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
@@ -69,12 +63,10 @@ func parseNotificationDate(raw string) time.Time {
 	return time.Now()
 }
 
-// bbvaAccount is the single MoneyWiz account used for every BBVA notification,
-// regardless of the account number shown in the message.
+// bbvaAccount is the single MoneyWiz account for every BBVA notification.
 const bbvaAccount = "BBVAEur"
 
-// pumbAccounts maps the masked account number as it appears in a PUMB notification
-// (e.g. "Рахунок: *0451") to the MoneyWiz account name.
+// pumbAccounts maps the masked account token in a PUMB notification (e.g. "*0451").
 var pumbAccounts = map[string]string{
 	"*0451": "PumbUAHPlatinum",
 	"*2164": "PumbUAHVirtual",
@@ -82,8 +74,7 @@ var pumbAccounts = map[string]string{
 	"*0404": "PumbEUR",
 }
 
-// privatAccounts maps the masked account token as it appears in a Privat24
-// notification (e.g. "5*85") to the MoneyWiz account name.
+// privatAccounts maps the masked account token in a Privat24 notification (e.g. "5*85").
 var privatAccounts = map[string]string{
 	"5*85": "PrivatOnlineUAH",
 	"3*87": "PrivatOnlineUSD",
@@ -97,11 +88,8 @@ var privatAccounts = map[string]string{
 	"1*89": "PrivatEUR",
 }
 
-// resolveAccountName determines the MoneyWiz account for a notification. The bank
-// is identified from the app name; PUMB and Privat24 then resolve the specific
-// account from the masked account number embedded in the message, while BBVA
-// always maps to a single account. Unrecognized apps/accounts fall back to the
-// app name so the transaction is still delivered (for manual account selection).
+// resolveAccountName picks the MoneyWiz account from the app and the masked
+// account in the message, falling back to the app name when unrecognized.
 func resolveAccountName(app string, message string) string {
 	switch detectBank(app) {
 	case "bbva":
@@ -120,7 +108,7 @@ func resolveAccountName(app string, message string) string {
 	return app
 }
 
-// detectBank maps a notification source app name to a known bank identifier.
+// detectBank maps an app name to a known bank identifier.
 func detectBank(app string) string {
 	normalized := strings.ToLower(strings.TrimSpace(app))
 	switch {
@@ -135,9 +123,8 @@ func detectBank(app string) string {
 	}
 }
 
-// matchAccountToken returns the account name whose masked token appears in the
-// message. Tokens carry a "*" (e.g. "*0451", "5*85"), which keeps the match from
-// colliding with amounts, balances or dates in the notification text.
+// matchAccountToken returns the account whose masked token appears in the message.
+// The "*" in tokens avoids collisions with amounts, balances or dates.
 func matchAccountToken(message string, accounts map[string]string) string {
 	for token, account := range accounts {
 		if strings.Contains(message, token) {
@@ -147,8 +134,8 @@ func matchAccountToken(message string, accounts map[string]string) string {
 	return ""
 }
 
-// NotificationHandler turns a parsed bank push notification (app, title, message)
-// into a categorized MoneyWiz deep link and delivers it to Telegram.
+// NotificationHandler turns a bank push notification into a MoneyWiz deep link
+// and delivers it to Telegram.
 func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("[Morph] Started notification handling...")
 
@@ -167,8 +154,7 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// The notification is forwarded by a Shortcut and carries no chat ID, so
-	// resolve the target chat from configuration.
+	// The notification carries no chat ID, so resolve it from configuration.
 	chatID, err := bot.GetChatID()
 	if err != nil {
 		log.Printf("[Morph] Error getting chat ID: %v", err)
