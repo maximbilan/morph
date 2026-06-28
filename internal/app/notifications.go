@@ -69,19 +69,82 @@ func parseNotificationDate(raw string) time.Time {
 	return time.Now()
 }
 
-// appAccountMap maps a notification source app to the MoneyWiz account name used
-// in deep links. The full app:account mapping will be provided later; until then
-// unknown apps fall back to the app name itself.
-var appAccountMap = map[string]string{}
+// bbvaAccount is the single MoneyWiz account used for every BBVA notification,
+// regardless of the account number shown in the message.
+const bbvaAccount = "BBVAEur"
 
-// getAccountNameFromApp resolves the MoneyWiz account name for a notification app.
-func getAccountNameFromApp(appName string) string {
-	if accountName, ok := appAccountMap[appName]; ok {
-		return accountName
+// pumbAccounts maps the masked account number as it appears in a PUMB notification
+// (e.g. "Рахунок: *0451") to the MoneyWiz account name.
+var pumbAccounts = map[string]string{
+	"*0451": "PumbUAHPlatinum",
+	"*2164": "PumbUAHVirtual",
+	"*5381": "PumbUSD",
+	"*0404": "PumbEUR",
+}
+
+// privatAccounts maps the masked account token as it appears in a Privat24
+// notification (e.g. "5*85") to the MoneyWiz account name.
+var privatAccounts = map[string]string{
+	"5*85": "PrivatOnlineUAH",
+	"3*87": "PrivatOnlineUSD",
+	"2*62": "PrivatOnlineEUR",
+	"5*30": "StartupPrivatUAH",
+	"9*88": "StartupPrivatUSD",
+	"6*64": "PrivatEntrepreneurUAH",
+	"6*31": "PrivatPaymentsUAH",
+	"6*99": "PrivatUniversalUAH",
+	"0*07": "PrivatPaymentsUSD",
+	"1*89": "PrivatEUR",
+}
+
+// resolveAccountName determines the MoneyWiz account for a notification. The bank
+// is identified from the app name; PUMB and Privat24 then resolve the specific
+// account from the masked account number embedded in the message, while BBVA
+// always maps to a single account. Unrecognized apps/accounts fall back to the
+// app name so the transaction is still delivered (for manual account selection).
+func resolveAccountName(app string, message string) string {
+	switch detectBank(app) {
+	case "bbva":
+		return bbvaAccount
+	case "pumb":
+		if account := matchAccountToken(message, pumbAccounts); account != "" {
+			return account
+		}
+	case "privat":
+		if account := matchAccountToken(message, privatAccounts); account != "" {
+			return account
+		}
 	}
 
-	log.Printf("[Morph] Unknown notification app: %q, using app name as account", appName)
-	return appName
+	log.Printf("[Morph] Could not resolve account for app %q, using app name", app)
+	return app
+}
+
+// detectBank maps a notification source app name to a known bank identifier.
+func detectBank(app string) string {
+	normalized := strings.ToLower(strings.TrimSpace(app))
+	switch {
+	case strings.Contains(normalized, "bbva"):
+		return "bbva"
+	case strings.Contains(normalized, "pumb") || strings.Contains(normalized, "пумб"):
+		return "pumb"
+	case strings.Contains(normalized, "privat"):
+		return "privat"
+	default:
+		return ""
+	}
+}
+
+// matchAccountToken returns the account name whose masked token appears in the
+// message. Tokens carry a "*" (e.g. "*0451", "5*85"), which keeps the match from
+// colliding with amounts, balances or dates in the notification text.
+func matchAccountToken(message string, accounts map[string]string) string {
+	for token, account := range accounts {
+		if strings.Contains(message, token) {
+			return account
+		}
+	}
+	return ""
 }
 
 // NotificationHandler turns a parsed bank push notification (app, title, message)
@@ -139,7 +202,7 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	absoluteAmount := math.Abs(response.Amount)
-	accountName := getAccountNameFromApp(notification.App)
+	accountName := resolveAccountName(notification.App, notification.Message)
 
 	txTime := parseNotificationDate(notification.Date)
 

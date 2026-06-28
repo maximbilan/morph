@@ -123,9 +123,9 @@ func TestNotificationHandler_HappyPathSchedulesShortLink(t *testing.T) {
 		t.Fatalf("deep link calls = %d, want 1", len(fakes.deepLink.calls))
 	}
 	deepLink := fakes.deepLink.calls[0]
-	// No app:account mapping configured yet, so the app name is used as the account.
-	if deepLink.account != "BBVA ES" {
-		t.Fatalf("deep link account = %q, want %q", deepLink.account, "BBVA ES")
+	// BBVA always maps to a single MoneyWiz account, ignoring the account in the message.
+	if deepLink.account != "BBVAEur" {
+		t.Fatalf("deep link account = %q, want %q", deepLink.account, "BBVAEur")
 	}
 	if deepLink.amount != 79.81 {
 		t.Fatalf("deep link amount = %.2f, want 79.81", deepLink.amount)
@@ -175,20 +175,63 @@ func TestNotificationHandler_ShortURLErrorIsIncludedInScheduledMessage(t *testin
 	}
 }
 
-func TestGetAccountNameFromApp(t *testing.T) {
-	if got := getAccountNameFromApp("Unknown Bank"); got != "Unknown Bank" {
-		t.Fatalf("unknown app account = %q, want app name fallback", got)
+func TestResolveAccountName(t *testing.T) {
+	tests := []struct {
+		name    string
+		app     string
+		message string
+		want    string
+	}{
+		{
+			name:    "BBVA ignores account number in message",
+			app:     "BBVA ES",
+			message: "Se ha cargado en tu cuenta *3297 un adeudo de 79,81 EUR.",
+			want:    "BBVAEur",
+		},
+		{
+			name:    "PUMB UAH platinum from masked account",
+			app:     "ПУМБ",
+			message: "167.36UAH\n26-06-2026 13:13\nРахунок: *0451\nДоступно: 3155.99UAH",
+			want:    "PumbUAHPlatinum",
+		},
+		{
+			name:    "PUMB USD from masked account",
+			app:     "Pumb",
+			message: "Рахунок: *5381\nДоступно: 100.00USD",
+			want:    "PumbUSD",
+		},
+		{
+			name:    "Privat24 online UAH from token",
+			app:     "Privat24",
+			message: "-149₴ Цифрові товари. YouTube Premium\n5*85 22:37\nБал. 429.4₴",
+			want:    "PrivatOnlineUAH",
+		},
+		{
+			name:    "Privat24 EUR from token",
+			app:     "Privat24",
+			message: "-10€ Some payment\n1*89 09:00\nБал. 100€",
+			want:    "PrivatEUR",
+		},
+		{
+			name:    "known bank but unrecognized account falls back to app name",
+			app:     "Pumb",
+			message: "Рахунок: *9999\nДоступно: 1.00UAH",
+			want:    "Pumb",
+		},
+		{
+			name:    "unknown app falls back to app name",
+			app:     "Some Bank",
+			message: "transaction *0451",
+			want:    "Some Bank",
+		},
 	}
 
-	oldMap := appAccountMap
-	appAccountMap = map[string]string{"BBVA ES": "BBVAEUR"}
-	t.Cleanup(func() { appAccountMap = oldMap })
-
-	if got := getAccountNameFromApp("BBVA ES"); got != "BBVAEUR" {
-		t.Fatalf("mapped app account = %q, want BBVAEUR", got)
-	}
-	if got := getAccountNameFromApp("ПУМБ"); got != "ПУМБ" {
-		t.Fatalf("unmapped app account = %q, want app name fallback", got)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := resolveAccountName(tt.app, tt.message); got != tt.want {
+				t.Fatalf("resolveAccountName(%q, ...) = %q, want %q", tt.app, got, tt.want)
+			}
+		})
 	}
 }
 

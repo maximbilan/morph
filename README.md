@@ -179,7 +179,7 @@ The application consists of five main Google Cloud Functions that work together 
 - **Flow**:
   1. Receives the source app name, notification title, message and optional date
   2. Uses AI to classify the notification into a category, subcategory, and amount
-  3. Resolves the MoneyWiz account name from the source app (see `appAccountMap` in `internal/app/notifications.go`)
+  3. Resolves the MoneyWiz account name from the source app and the masked account number in the message — BBVA maps to a single account, while PUMB (`Рахунок: *0451`) and Privat24 (`5*85`) resolve per card (see `resolveAccountName` in `internal/app/notifications.go`). Unrecognized apps/accounts fall back to the app name.
   4. Generates a MoneyWiz deep link (with the provided date) and shortens it
   5. Schedules a Telegram message with the categorized transaction and deep link
 
