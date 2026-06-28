@@ -178,7 +178,7 @@ The application consists of five main Google Cloud Functions that work together 
   `date` is optional. It accepts an absolute instant (RFC3339/ISO 8601 with timezone, or a Unix epoch in seconds/milliseconds) or a naive datetime copied from the notification text (interpreted as Europe/Kyiv). When omitted or unrecognized, the current server time is used.
 - **Flow**:
   1. Receives the source app name, notification title, message and optional date
-  2. Uses AI to classify the notification into a category, subcategory, and amount
+  2. Uses AI to classify the notification into a category, subcategory, and amount, and to decide whether it is an actual transaction — non-transaction pushes (promotional, informational, security alerts) are silently ignored
   3. Resolves the MoneyWiz account name from the source app and the masked account number in the message — BBVA maps to a single account, while PUMB (`Рахунок: *0451`) and Privat24 (`5*85`) resolve per card (see `resolveAccountName` in `internal/app/notifications.go`). Unrecognized apps/accounts fall back to the app name.
   4. Generates a MoneyWiz deep link (with the provided date) and shortens it
   5. Schedules a Telegram message with the categorized transaction and deep link

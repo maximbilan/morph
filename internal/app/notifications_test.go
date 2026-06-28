@@ -100,9 +100,10 @@ func TestNotificationHandler_HappyPathSchedulesShortLink(t *testing.T) {
 	fakes := installAppFakes(t)
 	fakes.bot.chatID = 777
 	fakes.ai.response = &aiservice.Response{
-		Category:    "Bills",
-		Subcategory: "Utilities",
-		Amount:      -79.81,
+		Category:      "Bills",
+		Subcategory:   "Utilities",
+		Amount:        -79.81,
+		IsTransaction: true,
 	}
 
 	req := httptest.NewRequest(http.MethodPost, "/notificationHandler", strings.NewReader(`{"app":"BBVA ES","title":"Recibo cargado","message":"Se ha cargado en tu cuenta *3297 un adeudo de AIGUES MUNICIPALS DE PATERNA, S.A. de 79,81 EUR.","date":"2026-06-26T13:13:00+03:00"}`))
@@ -153,9 +154,10 @@ func TestNotificationHandler_HappyPathSchedulesShortLink(t *testing.T) {
 func TestNotificationHandler_ShortURLErrorIsIncludedInScheduledMessage(t *testing.T) {
 	fakes := installAppFakes(t)
 	fakes.ai.response = &aiservice.Response{
-		Category:    "Multimedia",
-		Subcategory: "Applications",
-		Amount:      149,
+		Category:      "Multimedia",
+		Subcategory:   "Applications",
+		Amount:        149,
+		IsTransaction: true,
 	}
 	fakes.shortURL.err = errors.New("shortener down")
 
@@ -172,6 +174,37 @@ func TestNotificationHandler_ShortURLErrorIsIncludedInScheduledMessage(t *testin
 	}
 	if !strings.Contains(fakes.tasks.scheduledMessages[0].Text, "Error shortening URL: shortener down") {
 		t.Fatalf("scheduled text = %q, want shortening error", fakes.tasks.scheduledMessages[0].Text)
+	}
+}
+
+func TestNotificationHandler_NonTransactionIsIgnored(t *testing.T) {
+	fakes := installAppFakes(t)
+	fakes.ai.response = &aiservice.Response{
+		Category:      "Other",
+		Subcategory:   "",
+		Amount:        0,
+		IsTransaction: false,
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/notificationHandler", strings.NewReader(`{"app":"Privat24","title":"Privat24","message":"🎉 Отримайте 5% кешбек цими вихідними!"}`))
+	rr := httptest.NewRecorder()
+
+	NotificationHandler(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
+	}
+	if fakes.tasks.connectCount != 1 || fakes.tasks.closeCount != 1 {
+		t.Fatalf("task connect/close = %d/%d, want 1/1", fakes.tasks.connectCount, fakes.tasks.closeCount)
+	}
+	if fakes.deepLink.callCount != 0 {
+		t.Fatalf("deep link calls = %d, want 0", fakes.deepLink.callCount)
+	}
+	if fakes.shortURL.callCount != 0 {
+		t.Fatalf("short URL calls = %d, want 0", fakes.shortURL.callCount)
+	}
+	if len(fakes.tasks.scheduledMessages) != 0 {
+		t.Fatalf("scheduled messages = %d, want 0", len(fakes.tasks.scheduledMessages))
 	}
 }
 
