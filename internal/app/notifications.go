@@ -170,7 +170,7 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 	categories := category.GetCategoriesInJSON()
 	hints := category.GetHintsInJSON()
 
-	systemPrompt := "You are a data analyst. Your task is to classify a bank push notification into a category, subcategory, and amount. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Extract the transaction amount from the notification text as a number. Output a single-line JSON object with only these fields: category, subcategory, amount. Example of the output: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
+	systemPrompt := "You are a data analyst. Your task is to analyze a bank push notification and classify it into a category, subcategory, and amount. First decide whether the notification represents an actual financial transaction (a debit or credit on an account): set isTransaction to false for anything that is not a transaction, such as promotional or marketing messages, security or login alerts, or general informational messages, and set it to true only for real transactions. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Extract the transaction amount from the notification text as a number (use 0 when there is no transaction). Output a single-line JSON object with only these fields: category, subcategory, amount, isTransaction. Example of the output: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0, \"isTransaction\": true}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
 	userPrompt := fmt.Sprintf("Classify this bank push notification.\nApp: %s\nTitle: %s\nMessage: %s", notification.App, notification.Title, notification.Message)
 
 	response := aiService.Request("Morph", "Translates a bank push notification into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
@@ -182,6 +182,14 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 			ReplyToMessageID: nil,
 		}
 		taskService.ScheduleMessage(&ctx, scheduledMessage, time.Now())
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+		return
+	}
+
+	// Promotional, informational and other non-transaction pushes are dropped.
+	if !response.IsTransaction {
+		log.Printf("[Morph] Notification is not a transaction, ignoring")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 		return
