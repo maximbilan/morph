@@ -12,6 +12,7 @@ func init() {
 	functions.HTTP("monoHandler", monoHandler)
 	functions.HTTP("monoWebHook", monoWebHook)
 	functions.HTTP("sendMessage", sendMessage)
+	functions.HTTP("notificationHandler", notificationHandler)
 }
 
 func cashHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,4 +29,8 @@ func monoWebHook(w http.ResponseWriter, r *http.Request) {
 
 func sendMessage(w http.ResponseWriter, r *http.Request) {
 	app.SendMessage(w, r)
+}
+
+func notificationHandler(w http.ResponseWriter, r *http.Request) {
+	app.NotificationHandler(w, r)
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FUNCTIONS=("cashHandler" "monoHandler" "monoWebHook" "sendMessage")
+FUNCTIONS=("cashHandler" "monoHandler" "monoWebHook" "sendMessage" "notificationHandler")
 RUNTIME="go125"
 PROJECT_ID=$MORPH_PROJECT_ID
 MEMORY="256MB"

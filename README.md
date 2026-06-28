@@ -137,7 +137,7 @@ export MORPH_CLOUD_FUNCTION_URL="https://YOUR_REGION-YOUR_PROJECT.cloudfunctions
 
 ## Architecture Overview
 
-The application consists of four main Google Cloud Functions that work together to process and manage financial transactions:
+The application consists of five main Google Cloud Functions that work together to process and manage financial transactions:
 
 ### 1. `cashHandler`
 - **Purpose**: Processes manual cash transactions entered by users via Telegram
@@ -168,6 +168,20 @@ The application consists of four main Google Cloud Functions that work together 
   1. Receives message details via HTTP request
   2. Sends the message to the specified chat ID
   3. Supports message replies through `ReplyToMessageID`
+
+### 5. `notificationHandler`
+- **Purpose**: Processes bank push notifications forwarded by an iOS Shortcut (iOS 27+ can parse incoming push notifications and call a service)
+- **Request body** (`application/json`):
+  ```json
+  { "app": "BBVA ES", "title": "Recibo cargado", "message": "Se ha cargado en tu cuenta *3297 un adeudo de ... de 79,81 EUR.", "date": "2026-06-26T13:13:00+03:00" }
+  ```
+  `date` is optional. It accepts an absolute instant (RFC3339/ISO 8601 with timezone, or a Unix epoch in seconds/milliseconds) or a naive datetime copied from the notification text (interpreted as Europe/Kyiv). When omitted or unrecognized, the current server time is used.
+- **Flow**:
+  1. Receives the source app name, notification title, message and optional date
+  2. Uses AI to classify the notification into a category, subcategory, and amount
+  3. Resolves the MoneyWiz account name from the source app (see `appAccountMap` in `internal/app/notifications.go`)
+  4. Generates a MoneyWiz deep link (with the provided date) and shortens it
+  5. Schedules a Telegram message with the categorized transaction and deep link
 
 ## Task Processing
 
