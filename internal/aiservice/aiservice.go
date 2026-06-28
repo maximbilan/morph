@@ -3,9 +3,10 @@ package aiservice
 import "context"
 
 type Response struct {
-	Category    string  `json:"category"`
-	Subcategory string  `json:"subcategory"`
-	Amount      float64 `json:"amount"`
+	Category      string  `json:"category"`
+	Subcategory   string  `json:"subcategory"`
+	Amount        float64 `json:"amount"`
+	IsTransaction bool    `json:"isTransaction"`
 }
 
 type AIService interface {
