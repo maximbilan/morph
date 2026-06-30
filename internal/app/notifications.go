@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"net/http"
@@ -69,9 +70,13 @@ const bbvaAccount = "BBVAEur"
 // pumbAccounts maps the masked account token in a PUMB notification (e.g. "*0451").
 var pumbAccounts = map[string]string{
 	"*0451": "PumbUAHPlatinum",
+	"*5353": "PumbUAHPlatinum",
 	"*2164": "PumbUAHVirtual",
+	"*8043": "PumbUAHVirtual",
 	"*5381": "PumbUSD",
+	"*2985": "PumbUSD",
 	"*0404": "PumbEUR",
+	"*4249": "PumbEUR",
 }
 
 // privatAccounts maps the masked account token in a Privat24 notification (e.g. "5*85").
@@ -139,13 +144,26 @@ func matchAccountToken(message string, accounts map[string]string) string {
 func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("[Morph] Started notification handling...")
 
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("[Morph] Could not read notification body %s", err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Could not read notification"))
+		return
+	}
+
+	// Log the raw payload so we can see exactly what the iOS Shortcut sends.
+	log.Printf("[Morph] Raw notification body (%d bytes): %s", len(body), string(body))
+
 	var notification notificationRequest
-	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
+	if err := json.Unmarshal(body, &notification); err != nil {
 		log.Printf("[Morph] Could not parse notification %s", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Could not parse notification"))
 		return
 	}
+
+	log.Printf("[Morph] Parsed notification: app=%q title=%q message=%q date=%q", notification.App, notification.Title, notification.Message, notification.Date)
 
 	if notification.Title == "" && notification.Message == "" {
 		log.Printf("[Morph] No content in notification")
