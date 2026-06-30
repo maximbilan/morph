@@ -71,7 +71,7 @@ The following environment variables are required for the application to function
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/morph.git
+git clone https://github.com/maximbilan/morph.git
 cd morph
 ```
 
@@ -243,3 +243,7 @@ The project includes GitHub Actions workflows for:
 - `cleanup_shortio_links.sh`: Cleans up expired Short.io links
 - `update_deps.sh`: Updates Go dependencies
 - `create_credentials_json.sh`: Creates credentials JSON for local development
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
