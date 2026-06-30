@@ -228,6 +228,12 @@ func TestResolveAccountName(t *testing.T) {
 			want:    "PumbUAHPlatinum",
 		},
 		{
+			name:    "PUMB UAH platinum from secondary card token",
+			app:     "ПУМБ",
+			message: "25.60EUR / 1319.18UAH (курс 51.53)\nGASTROBAR B13 VALENCIA ES\n30-06-2026 12:46\nКартка: *5353...",
+			want:    "PumbUAHPlatinum",
+		},
+		{
 			name:    "PUMB USD from masked account",
 			app:     "Pumb",
 			message: "Рахунок: *5381\nДоступно: 100.00USD",
