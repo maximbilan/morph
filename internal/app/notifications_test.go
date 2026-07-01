@@ -151,7 +151,7 @@ func TestNotificationHandler_HappyPathSchedulesShortLink(t *testing.T) {
 	}
 }
 
-func TestNotificationHandler_ShortURLErrorIsIncludedInScheduledMessage(t *testing.T) {
+func TestNotificationHandler_ShortURLErrorFallsBackToRawDeepLink(t *testing.T) {
 	fakes := installAppFakes(t)
 	fakes.ai.response = &aiservice.Response{
 		Category:      "Multimedia",
@@ -172,8 +172,12 @@ func TestNotificationHandler_ShortURLErrorIsIncludedInScheduledMessage(t *testin
 	if len(fakes.tasks.scheduledMessages) != 1 {
 		t.Fatalf("scheduled messages = %d, want 1", len(fakes.tasks.scheduledMessages))
 	}
-	if !strings.Contains(fakes.tasks.scheduledMessages[0].Text, "Error shortening URL: shortener down") {
-		t.Fatalf("scheduled text = %q, want shortening error", fakes.tasks.scheduledMessages[0].Text)
+	got := fakes.tasks.scheduledMessages[0].Text
+	if !strings.Contains(got, "moneywiz://expense") {
+		t.Fatalf("scheduled text = %q, want raw deep link fallback", got)
+	}
+	if strings.Contains(got, "shortener down") {
+		t.Fatalf("scheduled text = %q, should not leak the shortener error", got)
 	}
 }
 

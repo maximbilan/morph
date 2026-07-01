@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 // StatementItem represents a single transaction in Mono
@@ -147,7 +148,7 @@ func GetClientInfo() (*ClientInfo, error) {
 
 	req.Header.Set("X-Token", apiKey)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request: %w", err)
