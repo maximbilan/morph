@@ -52,8 +52,8 @@ github.com/invopop/jsonschema v0.14.0 h1:MHQqLhvpNUZfw+hM3AZDYK7jxO8FZoQeQM77g8i
 github.com/invopop/jsonschema v0.14.0/go.mod h1:ygm6C2EaVNMBDPpaPlnOA2pFAxBnxGjFlMZABxm9n2I=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
-github.com/maximbilan/mcc v0.0.0-20260316180815-e1b019b3343c h1:ZSIihOdQi6BZ02UDKvqTevc9r8GxvWwHfbsBYvVKOzQ=
-github.com/maximbilan/mcc v0.0.0-20260316180815-e1b019b3343c/go.mod h1:Lr5AI9PLaxugjJdtAUIPBtEF6lNjRiYB3B6NW4as7OU=
+github.com/maximbilan/mcc v0.0.0-20260701123126-192cf0805b8e h1:E6j0r7ern4h8kU7sWHlu9OSYb2d6ALxWrNKemN55s20=
+github.com/maximbilan/mcc v0.0.0-20260701123126-192cf0805b8e/go.mod h1:Lr5AI9PLaxugjJdtAUIPBtEF6lNjRiYB3B6NW4as7OU=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
