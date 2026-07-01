@@ -15,6 +15,20 @@ import (
 
 const cashAccountName = "CashEUR"
 
+// appendShortLink shortens deepLink and appends the result to text on a new
+// line. If shortening fails it logs the full error and falls back to the raw
+// deep link, so the user still receives a usable link instead of the
+// shortener's (potentially huge) error page.
+func appendShortLink(text, deepLink string) string {
+	url, err := shortURLService.Shorten(deepLink)
+	if err != nil {
+		log.Printf("[Morph] Error shortening URL: %v", err)
+		return text + "\n⚠️ Link not shortened:\n" + deepLink
+	}
+	log.Printf("[Morph] Shortened URL: %s", url)
+	return text + "\n" + url
+}
+
 func CashHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("[Morph] Started cash handling...")
 
@@ -66,14 +80,7 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
 	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, cashAccountName, absoluteAmount, time.Now())
 
-	url, err := shortURLService.Shorten(deepLink)
-	if err != nil {
-		log.Printf("[Morph] Error shortening URL: %v", err)
-		text += "\nError shortening URL: " + err.Error()
-	} else {
-		log.Printf("[Morph] Shortened URL: %s", url)
-		text += "\n" + url
-	}
+	text = appendShortLink(text, deepLink)
 
 	log.Printf("[Morph] Sending message to chat %d", message.ChatID)
 
@@ -153,7 +160,6 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	if transaction.IsRefund {
 		linkMsg += "\n🔄 Refund"
 	}
-	linkMsg += "\n"
 
 	// Determine the transaction time. Mono API may provide time in seconds or milliseconds since epoch.
 	// Use a heuristic: treat large values as milliseconds.
@@ -170,14 +176,7 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 
 	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, accountName, absoluteAmount, txTime)
 
-	url, err := shortURLService.Shorten(deepLink)
-	if err != nil {
-		log.Printf("[Morph] Error shortening URL: %v", err)
-		linkMsg += "\nError shortening URL: " + err.Error()
-	} else {
-		log.Printf("[Morph] Shortened URL: %s", url)
-		linkMsg += url
-	}
+	linkMsg = appendShortLink(linkMsg, deepLink)
 
 	log.Printf("[Morph] Sending message to chat %d", chatId)
 

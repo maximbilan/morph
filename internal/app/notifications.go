@@ -223,14 +223,7 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 
 	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, accountName, absoluteAmount, txTime)
 
-	url, err := shortURLService.Shorten(deepLink)
-	if err != nil {
-		log.Printf("[Morph] Error shortening URL: %v", err)
-		text += "\nError shortening URL: " + err.Error()
-	} else {
-		log.Printf("[Morph] Shortened URL: %s", url)
-		text += "\n" + url
-	}
+	text = appendShortLink(text, deepLink)
 
 	log.Printf("[Morph] Sending message to chat %d", chatID)
 
