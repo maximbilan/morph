@@ -252,7 +252,7 @@ func TestResolveAccountName(t *testing.T) {
 		{
 			name:    "Privat24 EUR from token",
 			app:     "Privat24",
-			message: "-10€ Some payment\n1*89 09:00\nБал. 100€",
+			message: "-10€ Some payment\n5*89 09:00\nБал. 100€",
 			want:    "PrivatEUR",
 		},
 		{

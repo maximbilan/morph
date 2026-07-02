@@ -82,15 +82,15 @@ var pumbAccounts = map[string]string{
 // privatAccounts maps the masked account token in a Privat24 notification (e.g. "5*85").
 var privatAccounts = map[string]string{
 	"5*85": "PrivatOnlineUAH",
-	"3*87": "PrivatOnlineUSD",
-	"2*62": "PrivatOnlineEUR",
+	"5*87": "PrivatOnlineUSD",
+	"4*62": "PrivatOnlineEUR",
 	"5*30": "StartupPrivatUAH",
-	"9*88": "StartupPrivatUSD",
-	"6*64": "PrivatEntrepreneurUAH",
-	"6*31": "PrivatPaymentsUAH",
-	"6*99": "PrivatUniversalUAH",
-	"0*07": "PrivatPaymentsUSD",
-	"1*89": "PrivatEUR",
+	"5*88": "StartupPrivatUSD",
+	"5*64": "PrivatEntrepreneurUAH",
+	"5*31": "PrivatPaymentsUAH",
+	"4*99": "PrivatUniversalUAH",
+	"5*07": "PrivatPaymentsUSD",
+	"5*89": "PrivatEUR",
 }
 
 // resolveAccountName picks the MoneyWiz account from the app and the masked
