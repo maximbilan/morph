@@ -1,0 +1,98 @@
+name: Update Dependencies
+description: Weekly job that upgrades Go modules and opens a PR
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every Monday at 08:00 UTC
+    - cron: '0 8 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-deps:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache-dependency-path: go.sum
+
+    - name: Update dependencies
+      run: |
+        chmod +x ./scripts/update_deps.sh
+        ./scripts/update_deps.sh
+
+    - name: Check for changes
+      id: changes
+      run: |
+        if git diff --quiet go.mod go.sum; then
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+          echo "No dependency updates found."
+        else
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "Dependency updates found."
+          git diff --stat
+        fi
+
+    - name: Build and test
+      if: steps.changes.outputs.changed == 'true'
+      run: |
+        go build ./...
+        go test ./...
+
+    - name: Create or update pull request
+      if: steps.changes.outputs.changed == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        BRANCH="chore/update-deps"
+
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        git checkout -B "$BRANCH"
+        git add go.mod go.sum
+        git commit -m "Deps"
+        git push -u origin "$BRANCH" --force
+
+        EXISTING="$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')"
+        if [ "$EXISTING" = "0" ]; then
+          gh pr create \
+            --title "Deps" \
+            --base main \
+            --head "$BRANCH" \
+            --body "$(cat <<'EOF'
+        ## Summary
+        Automated dependency update from `./scripts/update_deps.sh` (`go get -u` + `go mod tidy`).
+
+        Opened by the weekly **Update Dependencies** workflow.
+
+        ## Test plan
+        - [x] `go build ./...` and `go test ./...` ran in the update workflow before opening this PR
+        - [ ] Review `go.mod` / `go.sum` diff
+        - [ ] Merge when ready
+        EOF
+        )"
+        else
+          echo "Open PR already exists for $BRANCH; branch was force-updated."
+        fi
+
+    - name: Summary
+      if: always()
+      run: |
+        {
+          echo "## Update Dependencies Summary"
+          echo ""
+          echo "**Triggered by:** ${{ github.event_name }}"
+          echo "**Status:** ${{ job.status }}"
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        } >> "$GITHUB_STEP_SUMMARY"
