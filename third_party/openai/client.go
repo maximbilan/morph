@@ -60,7 +60,9 @@ func (service OpenAI) Request(name string, description string, systemPrompt stri
 				JSONSchema: schemaParam,
 			},
 		},
-		Model: openai.ChatModelGPT4o,
+		// gpt-5.4-nano: best quality/cost/speed for closed-taxonomy
+		// transaction classification with structured JSON output.
+		Model: "gpt-5.4-nano",
 	})
 
 	response := aiservice.Response{}
