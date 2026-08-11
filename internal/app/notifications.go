@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/morph/internal/aiservice"
 	"github.com/morph/internal/category"
 	"github.com/morph/internal/taskservice"
 )
@@ -185,13 +186,18 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 	taskService.Connect(&ctx)
 	defer taskService.Close()
 
-	categories := category.GetCategoriesInJSON()
-	hints := category.GetHintsInJSON()
-
-	systemPrompt := "You are a data analyst. Your task is to analyze a bank push notification and classify it into a category, subcategory, and amount. First decide whether the notification represents an actual financial transaction (a debit or credit on an account): set isTransaction to false for anything that is not a transaction, such as promotional or marketing messages, security or login alerts, or general informational messages, and set it to true only for real transactions. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Extract the transaction amount from the notification text as a number (use 0 when there is no transaction). Output a single-line JSON object with only these fields: category, subcategory, amount, isTransaction. Example of the output: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0, \"isTransaction\": true}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
+	// A push carries no structured amount, so the model reads it from the text.
+	systemPrompt := category.ClassificationPrompt() +
+		"\n\nThis input is a bank push notification. Set isTransaction to false for promotional, marketing, security, login and other informational messages, and true only for a real debit or credit. Read the amount out of the notification text."
 	userPrompt := fmt.Sprintf("Classify this bank push notification.\nApp: %s\nTitle: %s\nMessage: %s", notification.App, notification.Title, notification.Message)
 
-	response := aiService.Request("Morph", "Translates a bank push notification into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
+	response := aiService.Classify(aiservice.Request{
+		Name:         "Morph",
+		Description:  "Translates a bank push notification into: Category, Subcategory, Amount",
+		SystemPrompt: systemPrompt,
+		UserPrompt:   userPrompt,
+		AllowedPaths: category.Paths(),
+	}, &ctx)
 	if response == nil {
 		log.Printf("[Morph] No response from AI")
 		scheduledMessage := taskservice.ScheduledMessage{
@@ -215,13 +221,14 @@ func NotificationHandler(w http.ResponseWriter, r *http.Request) {
 
 	absoluteAmount := math.Abs(response.Amount)
 	accountName := resolveAccountName(notification.App, notification.Message)
+	cat, subcategory := category.SplitPath(response.CategoryPath)
 
 	txTime := parseNotificationDate(notification.Date)
 
-	log.Printf("[Morph] Response: %s %s %f (account: %s, date: %s)", response.Category, response.Subcategory, absoluteAmount, accountName, txTime)
-	text := fmt.Sprintf("📲 %s\nCategory: %s\nSubcategory: %s\nAmount: %.2f", notification.App, response.Category, response.Subcategory, absoluteAmount)
+	log.Printf("[Morph] Response: %s %s %f (account: %s, date: %s)", cat, subcategory, absoluteAmount, accountName, txTime)
+	text := fmt.Sprintf("📲 %s\nCategory: %s\nSubcategory: %s\nAmount: %.2f", notification.App, cat, subcategory, absoluteAmount)
 
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, accountName, absoluteAmount, txTime)
+	deepLink := deepLinkGenerator.Create(cat, subcategory, accountName, absoluteAmount, txTime)
 
 	text = appendShortLink(text, deepLink)
 

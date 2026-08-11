@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/morph/internal/aiservice"
 	"github.com/morph/internal/category"
 	"github.com/morph/internal/taskservice"
 )
@@ -52,13 +53,13 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	taskService.Connect(&ctx)
 	defer taskService.Close()
 
-	categories := category.GetCategoriesInJSON()
-	hints := category.GetHintsInJSON()
-
-	systemPrompt := "You are a data analyst. Your task is to classify the input into a category, subcategory, and amount. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Output a single-line JSON object with only these fields: category, subcategory, amount. Example of the output: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
-	userPrompt := "Classify this input: " + message.Text
-
-	response := aiService.Request("Morph", "Translares free input into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
+	response := aiService.Classify(aiservice.Request{
+		Name:         "Morph",
+		Description:  "Translates free input into: Category, Subcategory, Amount",
+		SystemPrompt: category.ClassificationPrompt(),
+		UserPrompt:   "Classify this free-text cash expense.\nText: " + message.Text,
+		AllowedPaths: category.Paths(),
+	}, &ctx)
 	if response == nil {
 		log.Printf("[Morph] No response from AI")
 
@@ -75,10 +76,11 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	absoluteAmount := math.Abs(response.Amount)
+	cat, subcategory := category.SplitPath(response.CategoryPath)
 
-	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
-	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, cashAccountName, absoluteAmount, time.Now())
+	log.Printf("[Morph] Response: %s %s %f", cat, subcategory, absoluteAmount)
+	text := "Category: " + cat + "\nSubcategory: " + subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
+	deepLink := deepLinkGenerator.Create(cat, subcategory, cashAccountName, absoluteAmount, time.Now())
 
 	text = appendShortLink(text, deepLink)
 
@@ -131,15 +133,19 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	taskService.Connect(&ctx)
 	defer taskService.Close()
 
-	transactionStr := fmt.Sprintf("{ mcc: %d, description: %s, category: %s, amount: %.2f }", transaction.MCC, transaction.Description, transaction.Category, transaction.Amount)
-	categories := category.GetCategoriesInJSON()
-	hints := category.GetHintsInJSON()
-
-	systemPrompt := "You are a data analyst. Your task is to classify the bank transaction into a category, subcategory, and amount. You MUST ONLY use the categories and subcategories provided below—do not invent new ones. If the input does not match any, use 'Other' for category and an empty string for subcategory. Output a single-line JSON object with only these fields: category, subcategory, amount. Example of the output: {\"category\": \"Children\", \"subcategory\": \"Vocal\", \"amount\": 400.0}. Categories and subcategories: " + categories + " Hints: " + hints + " IMPORTANT: Do not add any explanation or extra text. Only output the JSON object."
-	userPrompt := "Classify this bank transaction: " + transactionStr
+	// The MCC description used to be labelled "category:", colliding with the
+	// category the model had to produce.
+	userPrompt := fmt.Sprintf("Classify this bank transaction.\nMerchant: %s\nMCC: %d (%s)\nAmount: %.2f",
+		transaction.Description, transaction.MCC, transaction.MCCDescription, transaction.Amount)
 
 	chatId := transaction.ChatID
-	response := aiService.Request("Morph", "Translares Monobank transaction into: Category, Subcategory, Amount", systemPrompt, userPrompt, &ctx)
+	response := aiService.Classify(aiservice.Request{
+		Name:         "Morph",
+		Description:  "Translates a Monobank transaction into: Category, Subcategory, Amount",
+		SystemPrompt: category.ClassificationPrompt(),
+		UserPrompt:   userPrompt,
+		AllowedPaths: category.Paths(),
+	}, &ctx)
 	if response == nil {
 		log.Printf("[Morph] No response from AI")
 		scheduledMessage := taskservice.ScheduledMessage{
@@ -153,10 +159,12 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	absoluteAmount := math.Abs(response.Amount)
+	// The webhook already carries the exact amount; don't trust the model's echo.
+	absoluteAmount := math.Abs(transaction.Amount)
+	cat, subcategory := category.SplitPath(response.CategoryPath)
 
-	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
-	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f", response.Category, response.Subcategory, absoluteAmount)
+	log.Printf("[Morph] Response: %s %s %f", cat, subcategory, absoluteAmount)
+	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f", cat, subcategory, absoluteAmount)
 	if transaction.IsRefund {
 		linkMsg += "\n🔄 Refund"
 	}
@@ -174,7 +182,7 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	accountName := getAccountNameFromID(transaction.AccountID)
 	log.Printf("[Morph] Account ID: %s, Account Name: %s", transaction.AccountID, accountName)
 
-	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, accountName, absoluteAmount, txTime)
+	deepLink := deepLinkGenerator.Create(cat, subcategory, accountName, absoluteAmount, txTime)
 
 	linkMsg = appendShortLink(linkMsg, deepLink)
 

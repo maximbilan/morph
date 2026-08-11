@@ -7,49 +7,49 @@ import (
 
 func TestScheduledTransaction_JSONSerialization(t *testing.T) {
 	tests := []struct {
-		name     string
+		name        string
 		transaction ScheduledTransaction
-		wantJSON string
+		wantJSON    string
 	}{
 		{
 			name: "Complete transaction with account ID",
 			transaction: ScheduledTransaction{
-				ChatID:      123456789,
-				MCC:         4121,
-				Category:    "Transport",
-				Description: "Bolt ride",
-				Amount:      -120.50,
-				Time:        1746194127,
-				IsRefund:    false,
-				AccountID:   "a-dnHAO9ExLnboGJP_pdwA",
+				ChatID:         123456789,
+				MCC:            4121,
+				MCCDescription: "Transport",
+				Description:    "Bolt ride",
+				Amount:         -120.50,
+				Time:           1746194127,
+				IsRefund:       false,
+				AccountID:      "a-dnHAO9ExLnboGJP_pdwA",
 			},
 			wantJSON: `{"chatId":123456789,"mcc":4121,"category":"Transport","description":"Bolt ride","amount":-120.5,"time":1746194127,"isRefund":false,"accountId":"a-dnHAO9ExLnboGJP_pdwA"}`,
 		},
 		{
 			name: "Transaction with refund and account ID",
 			transaction: ScheduledTransaction{
-				ChatID:      987654321,
-				MCC:         5411,
-				Category:    "Food",
-				Description: "Restaurant",
-				Amount:      250.75,
-				Time:        1746195000,
-				IsRefund:    true,
-				AccountID:   "WKl9I-LztrH1ZWeafLZEzQ",
+				ChatID:         987654321,
+				MCC:            5411,
+				MCCDescription: "Food",
+				Description:    "Restaurant",
+				Amount:         250.75,
+				Time:           1746195000,
+				IsRefund:       true,
+				AccountID:      "WKl9I-LztrH1ZWeafLZEzQ",
 			},
 			wantJSON: `{"chatId":987654321,"mcc":5411,"category":"Food","description":"Restaurant","amount":250.75,"time":1746195000,"isRefund":true,"accountId":"WKl9I-LztrH1ZWeafLZEzQ"}`,
 		},
 		{
 			name: "Transaction with empty account ID",
 			transaction: ScheduledTransaction{
-				ChatID:      111222333,
-				MCC:         5812,
-				Category:    "Entertainment",
-				Description: "Movie",
-				Amount:      -150.00,
-				Time:        1746196000,
-				IsRefund:    false,
-				AccountID:   "",
+				ChatID:         111222333,
+				MCC:            5812,
+				MCCDescription: "Entertainment",
+				Description:    "Movie",
+				Amount:         -150.00,
+				Time:           1746196000,
+				IsRefund:       false,
+				AccountID:      "",
 			},
 			wantJSON: `{"chatId":111222333,"mcc":5812,"category":"Entertainment","description":"Movie","amount":-150,"time":1746196000,"isRefund":false,"accountId":""}`,
 		},
@@ -99,14 +99,14 @@ func TestScheduledTransaction_JSONSerialization(t *testing.T) {
 func TestScheduledTransaction_AccountIDField(t *testing.T) {
 	// Test that AccountID is properly included in JSON
 	transaction := ScheduledTransaction{
-		ChatID:      123456789,
-		MCC:         4121,
-		Category:    "Transport",
-		Description: "Test transaction",
-		Amount:      -50.00,
-		Time:        1746194127,
-		IsRefund:    false,
-		AccountID:   "a-dnHAO9ExLnboGJP_pdwA",
+		ChatID:         123456789,
+		MCC:            4121,
+		MCCDescription: "Transport",
+		Description:    "Test transaction",
+		Amount:         -50.00,
+		Time:           1746194127,
+		IsRefund:       false,
+		AccountID:      "a-dnHAO9ExLnboGJP_pdwA",
 	}
 
 	jsonData, err := json.Marshal(transaction)

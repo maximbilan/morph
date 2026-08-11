@@ -100,8 +100,7 @@ func TestNotificationHandler_HappyPathSchedulesShortLink(t *testing.T) {
 	fakes := installAppFakes(t)
 	fakes.bot.chatID = 777
 	fakes.ai.response = &aiservice.Response{
-		Category:      "Bills",
-		Subcategory:   "Utilities",
+		CategoryPath:  "Bills/Utilities",
 		Amount:        -79.81,
 		IsTransaction: true,
 	}
@@ -154,8 +153,7 @@ func TestNotificationHandler_HappyPathSchedulesShortLink(t *testing.T) {
 func TestNotificationHandler_ShortURLErrorFallsBackToRawDeepLink(t *testing.T) {
 	fakes := installAppFakes(t)
 	fakes.ai.response = &aiservice.Response{
-		Category:      "Multimedia",
-		Subcategory:   "Applications",
+		CategoryPath:  "Multimedia/Applications",
 		Amount:        149,
 		IsTransaction: true,
 	}
@@ -184,8 +182,7 @@ func TestNotificationHandler_ShortURLErrorFallsBackToRawDeepLink(t *testing.T) {
 func TestNotificationHandler_NonTransactionIsIgnored(t *testing.T) {
 	fakes := installAppFakes(t)
 	fakes.ai.response = &aiservice.Response{
-		Category:      "Other",
-		Subcategory:   "",
+		CategoryPath:  "Other",
 		Amount:        0,
 		IsTransaction: false,
 	}

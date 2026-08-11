@@ -61,6 +61,26 @@ The following environment variables are required for the application to function
 - `MORPH_PROJECT_ID`: Google Cloud Project ID
 - `MORPH_SERVER_REGION`: Google Cloud region (e.g., `us-central1`)
 
+#### Optional Environment Variables
+- `MORPH_AI_MODEL`: OpenAI model used for transaction classification. Defaults to
+  `gpt-5.4-mini`. Set it to try another model without redeploying code, and check
+  the result with the eval below before keeping it.
+
+### Measuring classification quality
+
+`cmd/classifyeval` replays labelled transactions captured from real traffic
+through the production prompt and schema, and reports how many land on the right
+taxonomy leaf and how many fall back to an `Other` leaf:
+
+```bash
+MORPH_AI_KEY="your-openai-api-key" go run ./cmd/classifyeval -runs 3 -v
+MORPH_AI_MODEL=gpt-5.4-nano MORPH_AI_KEY="..." go run ./cmd/classifyeval -runs 3
+```
+
+Add a line to `cmd/classifyeval/testdata/cases.jsonl` whenever the bot
+misclassifies something, so the next prompt or model change can be checked
+against it.
+
 #### Additional Setup Variables
 - `MORPH_MONO_API_KEY`: Monobank API token (for webhook setup)
 - `MORPH_MONO_WEBHOOK_URL`: Monobank webhook URL (for webhook setup)

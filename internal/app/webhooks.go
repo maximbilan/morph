@@ -123,14 +123,14 @@ func MonoWebHook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	scheduledTransaction := taskservice.ScheduledTransaction{
-		ChatID:      chatID,
-		MCC:         payload.Data.StatementItem.MCC,
-		Category:    mmcCategory,
-		Description: payload.Data.StatementItem.Description,
-		Amount:      payload.Data.StatementItem.AmountFloat(),
-		Time:        payload.Data.StatementItem.Time,
-		IsRefund:    payload.Data.StatementItem.IsRefund(),
-		AccountID:   payload.Data.Account,
+		ChatID:         chatID,
+		MCC:            payload.Data.StatementItem.MCC,
+		MCCDescription: mmcCategory,
+		Description:    payload.Data.StatementItem.Description,
+		Amount:         payload.Data.StatementItem.AmountFloat(),
+		Time:           payload.Data.StatementItem.Time,
+		IsRefund:       payload.Data.StatementItem.IsRefund(),
+		AccountID:      payload.Data.Account,
 	}
 
 	taskService.ScheduleTransaction(&ctx, scheduledTransaction, time.Now())

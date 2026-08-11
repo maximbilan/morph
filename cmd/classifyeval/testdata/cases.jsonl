@@ -1,0 +1,48 @@
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "Mercadona", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "Consum", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "ALCAMPO ALDAYA", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "MI ALCAMPO DE FORMIGAL", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "VENTA SANCHO", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "MP**CARREF CAMPANAR", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "SUPERMERCADO COALIMENT", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "VENTA PETRUSO", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5411, "merchant": "MULTI COOK", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5499, "merchant": "NYX*CentrosComercialesCa", "amount": 12.34, "want": "Food/Shop", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5812, "merchant": "BUHOS", "amount": 12.34, "want": "Food/Outdoors", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5812, "merchant": "RESTAURANTE SUSCALAR", "amount": 12.34, "want": "Food/Outdoors", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5814, "merchant": "McDonald’s", "amount": 12.34, "want": "Food/Outdoors", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5814, "merchant": "RESTAURANTES RAFAEL GONZA", "amount": 12.34, "want": "Food/Outdoors", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5813, "merchant": "HELADERIA LLINARES", "amount": 12.34, "want": "Food/Outdoors", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 7999, "merchant": "RESTAURACION PANTICOSA", "amount": 12.34, "want": "Food/Outdoors", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 8699, "merchant": "SumUp  *Feria MCNQQSGL", "amount": 12.34, "want": "Food/Outdoors", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5541, "merchant": "E.S. CAMPO ROMANOS", "amount": 12.34, "want": "Car/Fuel", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5541, "merchant": "MASACUAS VALDIVIACHAS, S.", "amount": 12.34, "want": "Car/Fuel", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5542, "merchant": "GASEXPRESS LA ELIANA", "amount": 12.34, "want": "Car/Fuel", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5542, "merchant": "MP**EESS HUESCA DAC", "amount": 12.34, "want": "Car/Fuel", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5542, "merchant": "PLENERGY US 0507 SAN ANTO", "amount": 12.34, "want": "Car/Fuel", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 7523, "merchant": "Паркінг", "amount": 12.34, "want": "Car/Parking", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 7922, "merchant": "PARQUE FAUNISTICO PIRINEO", "amount": 12.34, "want": "Activities/Activities", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 7832, "merchant": "PARQUE FAUNISTICO LA CUNI", "amount": 12.34, "want": "Activities/Activities", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5200, "merchant": "PETIT TRAIN ARTOUSTE", "amount": 12.34, "want": "Activities/Activities", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 4457, "merchant": "EMBARCADERO SUSCALAR", "amount": 12.34, "want": "Activities/Activities", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 7999, "merchant": "FORMIGAL-TAQUILLAS REMONT", "amount": 12.34, "want": "Activities/Sport", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 7011, "merchant": "HOTEL HG ALTO ARAGON", "amount": 12.34, "want": "Travel/Hotel", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 5651, "merchant": "Primark", "amount": 12.34, "want": "Things/Clothes", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 9405, "merchant": "COMM SYND BIELLE BILHERES", "amount": 12.34, "want": "Bills/Utilities", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 4829, "merchant": "ГУК Харківськ обл/Харкiвобл/11011700", "amount": 12.34, "want": "Business/Taxes", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 4829, "merchant": "ГУК Харків обл/МТГ Харкiв/18050400", "amount": 12.34, "want": "Business/Taxes", "wantIsExpense": true}
+{"kind": "mono", "group": "purchases", "mcc": 4829, "merchant": "Від: Deel, Inc.", "amount": 12.34, "want": "Business/Salary", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "На чорну картку", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "З Чорної картки", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "Переказ на картку", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "З гривневого рахунку ФОП", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "З доларового рахунку ФОП", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "З доларового рахунку ФОП для переказу на картку", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "Олександр К.", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "400000****0000", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "400001****1111", "amount": 5000.0, "want": "Business/Accounts", "wantIsExpense": true}
+{"kind": "mono", "group": "transfers", "mcc": 4829, "merchant": "Виведення кешбеку 391.09₴", "amount": 5000.0, "want": "Business/Finances", "wantIsExpense": true}
+{"kind": "notification", "group": "pushes", "app": "Privat24", "title": "", "message": "ПриватБанк -9.99$ Цифрові товари. Apple\n5*87 10:34\nБал. 00.00$", "want": "Multimedia/Applications", "wantIsExpense": true}
+{"kind": "notification", "group": "pushes", "app": "Privat24", "title": "", "message": "Ваші документи отримано, перевірка може тривати до 30 хвилин. Ми повідомимо вас про завершення.", "want": "", "wantIsExpense": false}
+{"kind": "notification", "group": "pushes", "app": "Privat24", "title": "", "message": "Підтвердження Авторизації в Приват24", "want": "", "wantIsExpense": false}
+{"kind": "notification", "group": "pushes", "app": "Privat24", "title": "", "message": "Не вдалось розпізнати документ, будь ласка, надайте його повторно.", "want": "", "wantIsExpense": false}

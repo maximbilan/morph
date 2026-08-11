@@ -7,11 +7,18 @@ import (
 	"os"
 	"time"
 
-	"github.com/invopop/jsonschema"
 	"github.com/morph/internal/aiservice"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 )
+
+// defaultModel is overridable via MORPH_AI_MODEL. mini rather than nano: on 44
+// replayed real transactions nano hits 66-77% of leaves, mini 91-95% with no
+// "Other" fallbacks. See cmd/classifyeval.
+const defaultModel = "gpt-5.4-mini"
+
+// requestAttempts covers transient API failures.
+const requestAttempts = 2
 
 type OpenAI struct{}
 
@@ -22,60 +29,104 @@ func createAI() *openai.Client {
 	return &client
 }
 
-func generateSchema[T any]() interface{} {
-	reflector := jsonschema.Reflector{
-		AllowAdditionalProperties: false,
-		DoNotReference:            true,
+func model() string {
+	if name := os.Getenv("MORPH_AI_MODEL"); name != "" {
+		return name
 	}
-	var v T
-	schema := reflector.Reflect(v)
-	return schema
+	return defaultModel
 }
 
-func (service OpenAI) Request(name string, description string, systemPrompt string, userPrompt string, ctx *context.Context) *aiservice.Response {
+// responseSchema is hand-built rather than reflected so categoryPath can carry
+// the taxonomy as an enum, which makes an invalid category ungeneratable.
+func responseSchema(allowedPaths []string) map[string]any {
+	categoryPath := map[string]any{
+		"type":        "string",
+		"description": "The single best matching taxonomy path.",
+	}
+	if len(allowedPaths) > 0 {
+		categoryPath["enum"] = allowedPaths
+	}
+
+	// Property order is generation order: merchant first, then the leaf.
+	return map[string]any{
+		"type": "object",
+		"properties": map[string]any{
+			"merchant": map[string]any{
+				"type":        "string",
+				"description": "What the counterparty actually is, in 1-6 words, for example 'Spanish supermarket chain' or 'own account transfer'. Fill this in first.",
+			},
+			"isTransaction": map[string]any{
+				"type":        "boolean",
+				"description": "True only for a real debit or credit on an account. False for promotional, security, login or informational messages.",
+			},
+			"amount": map[string]any{
+				"type":        "number",
+				"description": "The transaction amount, or 0 when there is no transaction.",
+			},
+			"categoryPath": categoryPath,
+		},
+		"required":             []string{"merchant", "isTransaction", "amount", "categoryPath"},
+		"additionalProperties": false,
+	}
+}
+
+func (service OpenAI) Classify(req aiservice.Request, ctx *context.Context) *aiservice.Response {
 	startTime := time.Now()
 	defer func() {
-		duration := time.Since(startTime)
-		log.Printf("[OpenAI] Request took %v", duration)
+		log.Printf("[OpenAI] Request took %v", time.Since(startTime))
 	}()
 
 	ai := createAI()
+	name := model()
 
-	var responseSchema = generateSchema[aiservice.Response]()
-
-	schemaParam := openai.ResponseFormatJSONSchemaJSONSchemaParam{
-		Name:        name,
-		Description: openai.String(description),
-		Schema:      responseSchema,
-		Strict:      openai.Bool(true),
-	}
-
-	chat, err := ai.Chat.Completions.New(*ctx, openai.ChatCompletionNewParams{
+	params := openai.ChatCompletionNewParams{
 		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage(systemPrompt),
-			openai.UserMessage(userPrompt),
+			openai.SystemMessage(req.SystemPrompt),
+			openai.UserMessage(req.UserPrompt),
 		},
 		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
 			OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{
-				JSONSchema: schemaParam,
+				JSONSchema: openai.ResponseFormatJSONSchemaJSONSchemaParam{
+					Name:        req.Name,
+					Description: openai.String(req.Description),
+					Schema:      responseSchema(req.AllowedPaths),
+					Strict:      openai.Bool(true),
+				},
 			},
 		},
-		// gpt-5.4-nano: best quality/cost/speed for closed-taxonomy
-		// transaction classification with structured JSON output.
-		Model: "gpt-5.4-nano",
-	})
-
-	response := aiservice.Response{}
-	if err != nil {
-		log.Printf("[AI] Error parsing analysis: %s", err.Error())
-		return nil
+		Model: name,
 	}
 
-	err = json.Unmarshal([]byte(chat.Choices[0].Message.Content), &response)
-	if err != nil {
-		log.Printf("[AI] Error parsing analysis: %s", err.Error())
-		return nil
+	for attempt := 1; attempt <= requestAttempts; attempt++ {
+		chat, err := ai.Chat.Completions.New(*ctx, params)
+		if err != nil {
+			log.Printf("[AI] Request to %s failed (attempt %d/%d): %s", name, attempt, requestAttempts, err.Error())
+			continue
+		}
+		if len(chat.Choices) == 0 {
+			log.Printf("[AI] Model %s returned no choices (attempt %d/%d)", name, attempt, requestAttempts)
+			continue
+		}
+
+		choice := chat.Choices[0]
+		if choice.Message.Refusal != "" {
+			log.Printf("[AI] Model %s refused: %s", name, choice.Message.Refusal)
+			return nil
+		}
+		if choice.FinishReason != "stop" {
+			// "length" means truncated JSON: retrying will not help, but log it.
+			log.Printf("[AI] Model %s finished with reason %q", name, choice.FinishReason)
+		}
+
+		response := aiservice.Response{}
+		if err := json.Unmarshal([]byte(choice.Message.Content), &response); err != nil {
+			log.Printf("[AI] Could not parse analysis (attempt %d/%d): %s", attempt, requestAttempts, err.Error())
+			continue
+		}
+
+		log.Printf("[AI] %s: merchant=%q path=%q tokens=%d", name, response.Merchant, response.CategoryPath, chat.Usage.CompletionTokens)
+		return &response
 	}
 
-	return &response
+	return nil
 }

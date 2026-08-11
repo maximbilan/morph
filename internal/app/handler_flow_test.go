@@ -43,14 +43,16 @@ func (b *fakeBot) SendMessage(chatID int64, text string, replyToMessageID *int64
 }
 
 type fakeAI struct {
-	response   *aiservice.Response
-	callCount  int
-	userPrompt string
+	response     *aiservice.Response
+	callCount    int
+	userPrompt   string
+	allowedPaths []string
 }
 
-func (a *fakeAI) Request(name string, description string, systemPrompt string, userPrompt string, ctx *context.Context) *aiservice.Response {
+func (a *fakeAI) Classify(req aiservice.Request, ctx *context.Context) *aiservice.Response {
 	a.callCount++
-	a.userPrompt = userPrompt
+	a.userPrompt = req.UserPrompt
+	a.allowedPaths = req.AllowedPaths
 	return a.response
 }
 
@@ -224,9 +226,8 @@ func TestCashHandler_HappyPathUsesCashEURAndSchedulesShortLink(t *testing.T) {
 		Text:      "groceries 42.5",
 	}
 	fakes.ai.response = &aiservice.Response{
-		Category:    "Food",
-		Subcategory: "Shop",
-		Amount:      -42.5,
+		CategoryPath: "Food/Shop",
+		Amount:       -42.5,
 	}
 
 	req := httptest.NewRequest(http.MethodPost, "/cashHandler", strings.NewReader(`{}`))
@@ -271,9 +272,8 @@ func TestCashHandler_ShortURLErrorFallsBackToRawDeepLink(t *testing.T) {
 		Text:      "taxi 10",
 	}
 	fakes.ai.response = &aiservice.Response{
-		Category:    "Transport",
-		Subcategory: "Taxi",
-		Amount:      10,
+		CategoryPath: "Transport/Taxi",
+		Amount:       10,
 	}
 	fakes.shortURL.err = errors.New("shortener down")
 
@@ -336,9 +336,8 @@ func TestMonoHandler_NoAIResponseSchedulesErrorMessage(t *testing.T) {
 func TestMonoHandler_HappyPathUsesAccountMappingRefundAndMillisecondTime(t *testing.T) {
 	fakes := installAppFakes(t)
 	fakes.ai.response = &aiservice.Response{
-		Category:    "Transport",
-		Subcategory: "Taxi",
-		Amount:      -176,
+		CategoryPath: "Transport/Taxi",
+		Amount:       -176,
 	}
 
 	req := httptest.NewRequest(http.MethodPost, "/monoHandler", strings.NewReader(`{"chatId":654,"mcc":4121,"category":"Transport","description":"Скасування. Bolt","amount":176,"time":1746194127000,"isRefund":true,"accountId":"WKl9I-LztrH1ZWeafLZEzQ"}`))
@@ -487,8 +486,8 @@ func TestMonoWebHook_HappyPathSchedulesTransaction(t *testing.T) {
 	if got.ChatID != 987 || got.MCC != 4121 || got.Description != "Bolt" || got.Amount != 120 || got.Time != 1746194127 || got.AccountID != "WKl9I-LztrH1ZWeafLZEzQ" {
 		t.Fatalf("scheduled transaction = %+v, want parsed Mono transaction", got)
 	}
-	if got.Category == "" {
-		t.Fatalf("scheduled transaction category is empty")
+	if got.MCCDescription == "" {
+		t.Fatalf("scheduled transaction MCC description is empty")
 	}
 	if got.IsRefund {
 		t.Fatalf("scheduled transaction refund = true, want false")
