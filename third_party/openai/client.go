@@ -17,9 +17,6 @@ import (
 // "Other" fallbacks. See cmd/classifyeval.
 const defaultModel = "gpt-5.4-mini"
 
-// requestAttempts covers transient API failures.
-const requestAttempts = 2
-
 type OpenAI struct{}
 
 func createAI() *openai.Client {
@@ -97,36 +94,32 @@ func (service OpenAI) Classify(req aiservice.Request, ctx *context.Context) *ais
 		Model: name,
 	}
 
-	for attempt := 1; attempt <= requestAttempts; attempt++ {
-		chat, err := ai.Chat.Completions.New(*ctx, params)
-		if err != nil {
-			log.Printf("[AI] Request to %s failed (attempt %d/%d): %s", name, attempt, requestAttempts, err.Error())
-			continue
-		}
-		if len(chat.Choices) == 0 {
-			log.Printf("[AI] Model %s returned no choices (attempt %d/%d)", name, attempt, requestAttempts)
-			continue
-		}
-
-		choice := chat.Choices[0]
-		if choice.Message.Refusal != "" {
-			log.Printf("[AI] Model %s refused: %s", name, choice.Message.Refusal)
-			return nil
-		}
-		if choice.FinishReason != "stop" {
-			// "length" means truncated JSON: retrying will not help, but log it.
-			log.Printf("[AI] Model %s finished with reason %q", name, choice.FinishReason)
-		}
-
-		response := aiservice.Response{}
-		if err := json.Unmarshal([]byte(choice.Message.Content), &response); err != nil {
-			log.Printf("[AI] Could not parse analysis (attempt %d/%d): %s", attempt, requestAttempts, err.Error())
-			continue
-		}
-
-		log.Printf("[AI] %s: merchant=%q path=%q tokens=%d", name, response.Merchant, response.CategoryPath, chat.Usage.CompletionTokens)
-		return &response
+	chat, err := ai.Chat.Completions.New(*ctx, params)
+	if err != nil {
+		log.Printf("[AI] Request to %s failed: %s", name, err.Error())
+		return nil
+	}
+	if len(chat.Choices) == 0 {
+		log.Printf("[AI] Model %s returned no choices", name)
+		return nil
 	}
 
-	return nil
+	choice := chat.Choices[0]
+	if choice.Message.Refusal != "" {
+		log.Printf("[AI] Model %s refused: %s", name, choice.Message.Refusal)
+		return nil
+	}
+	if choice.FinishReason != "stop" {
+		// "length" means truncated JSON, which will not parse below.
+		log.Printf("[AI] Model %s finished with reason %q", name, choice.FinishReason)
+	}
+
+	response := aiservice.Response{}
+	if err := json.Unmarshal([]byte(choice.Message.Content), &response); err != nil {
+		log.Printf("[AI] Could not parse analysis: %s", err.Error())
+		return nil
+	}
+
+	log.Printf("[AI] %s: merchant=%q path=%q tokens=%d", name, response.Merchant, response.CategoryPath, chat.Usage.CompletionTokens)
+	return &response
 }
