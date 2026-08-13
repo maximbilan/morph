@@ -1,6 +1,6 @@
 module github.com/morph
 
-go 1.25.8
+go 1.26.0
 
 require (
 	cloud.google.com/go/cloudtasks v1.19.0

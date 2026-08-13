@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FUNCTIONS=("cashHandler" "monoHandler" "monoWebHook" "sendMessage" "notificationHandler")
-RUNTIME="go125"
+RUNTIME="go126"
 PROJECT_ID=$MORPH_PROJECT_ID
 MEMORY="256MB"
 TIMEOUT=180 # 3 minutes
