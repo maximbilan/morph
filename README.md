@@ -13,7 +13,7 @@ Morph is a serverless application built on Google Cloud Functions that helps man
 
 ## Prerequisites
 
-- Go 1.25.0 or later
+- Go 1.26.0 or later
 - Google Cloud Platform account with billing enabled
 - Google Cloud SDK (`gcloud`) installed and configured
 - Monobank API token
