@@ -254,7 +254,7 @@ func TestCashHandler_HappyPathUsesCashEURAndSchedulesShortLink(t *testing.T) {
 		t.Fatalf("scheduled messages = %d, want 1", len(fakes.tasks.scheduledMessages))
 	}
 	got := fakes.tasks.scheduledMessages[0]
-	wantText := "Category: Food\nSubcategory: Shop\nAmount: 42.50\nhttps://short.example/link"
+	wantText := "💵 Cash\nCategory: Food\nSubcategory: Shop\nAmount: 42.50\nhttps://short.example/link"
 	if got.Text != wantText {
 		t.Fatalf("scheduled text = %q, want %q", got.Text, wantText)
 	}
@@ -366,11 +366,9 @@ func TestMonoHandler_HappyPathUsesAccountMappingRefundAndMillisecondTime(t *test
 		t.Fatalf("scheduled messages = %d, want 1", len(fakes.tasks.scheduledMessages))
 	}
 	got := fakes.tasks.scheduledMessages[0]
-	if !strings.Contains(got.Text, "🔄 Refund") {
-		t.Fatalf("scheduled text = %q, want refund marker", got.Text)
-	}
-	if !strings.Contains(got.Text, "https://short.example/link") {
-		t.Fatalf("scheduled text = %q, want short link", got.Text)
+	wantText := "📲 Monobank\nCategory: Transport\nSubcategory: Taxi\nAmount: 176.00\n🔄 Refund\nhttps://short.example/link"
+	if got.Text != wantText {
+		t.Fatalf("scheduled text = %q, want %q", got.Text, wantText)
 	}
 }
 

@@ -15,6 +15,13 @@ import (
 
 const cashAccountName = "CashEUR"
 
+// monoLabel and cashLabel head their messages so every entry in the Telegram
+// chat says which bank (or wallet) it came from.
+const (
+	monoLabel = "Monobank"
+	cashLabel = "Cash"
+)
+
 // appendShortLink shortens deepLink and appends the result to text on a new
 // line. If shortening fails it logs the full error and falls back to the raw
 // deep link, so the user still receives a usable link instead of the
@@ -77,7 +84,7 @@ func CashHandler(w http.ResponseWriter, r *http.Request) {
 	absoluteAmount := math.Abs(response.Amount)
 
 	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
-	text := "Category: " + response.Category + "\nSubcategory: " + response.Subcategory + "\nAmount: " + fmt.Sprintf("%.2f", absoluteAmount)
+	text := fmt.Sprintf("💵 %s\nCategory: %s\nSubcategory: %s\nAmount: %.2f", cashLabel, response.Category, response.Subcategory, absoluteAmount)
 	deepLink := deepLinkGenerator.Create(response.Category, response.Subcategory, cashAccountName, absoluteAmount, time.Now())
 
 	text = appendShortLink(text, deepLink)
@@ -156,7 +163,7 @@ func MonoHandler(w http.ResponseWriter, r *http.Request) {
 	absoluteAmount := math.Abs(response.Amount)
 
 	log.Printf("[Morph] Response: %s %s %f", response.Category, response.Subcategory, absoluteAmount)
-	linkMsg := fmt.Sprintf("Category: %s\nSubcategory: %s\nAmount: %.2f", response.Category, response.Subcategory, absoluteAmount)
+	linkMsg := fmt.Sprintf("📲 %s\nCategory: %s\nSubcategory: %s\nAmount: %.2f", monoLabel, response.Category, response.Subcategory, absoluteAmount)
 	if transaction.IsRefund {
 		linkMsg += "\n🔄 Refund"
 	}
