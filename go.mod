@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/cloudtasks v1.19.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
 	github.com/invopop/jsonschema v0.14.0
-	github.com/maximbilan/mcc v0.0.0-20260809124657-e7db4802e55b
+	github.com/maximbilan/mcc v0.0.0-20260814171422-1a8fcb5184ff
 	github.com/openai/openai-go v1.12.0
 	google.golang.org/protobuf v1.36.11
 )
