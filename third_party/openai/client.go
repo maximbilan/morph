@@ -11,6 +11,7 @@ import (
 	"github.com/morph/internal/aiservice"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+	"github.com/openai/openai-go/shared"
 )
 
 type OpenAI struct{}
@@ -60,9 +61,12 @@ func (service OpenAI) Request(name string, description string, systemPrompt stri
 				JSONSchema: schemaParam,
 			},
 		},
-		// gpt-5.4-nano: best quality/cost/speed for closed-taxonomy
+		// gpt-6-luna: best quality/cost/speed for closed-taxonomy
 		// transaction classification with structured JSON output.
-		Model: "gpt-5.4-nano",
+		Model: "gpt-6-luna",
+		// gpt-6-luna defaults to medium reasoning; classification doesn't
+		// need it, and "none" keeps latency and token cost down.
+		ReasoningEffort: shared.ReasoningEffort("none"),
 	})
 
 	response := aiservice.Response{}
